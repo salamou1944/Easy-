@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>API Lab — Card Battle</title>
+<style>body{font-family:system-ui;max-width:720px;margin:auto;padding:24px;text-align:center}.cards{display:flex;gap:20px;justify-content:center;margin:24px 0}.card{width:140px;height:190px;border:1px solid #ddd;border-radius:16px;display:grid;place-items:center;font-size:20px}.red{color:#c00}button{padding:12px 18px;font-size:16px}</style>
+<h1>Card Battle</h1><p>API experiment: use a remote deck as the game engine.</p><button onclick="deal()">Deal two cards</button><div id="out"></div>
+<script>
+let deck;
+async function deal(){const out=document.getElementById('out');out.textContent='Loading…';try{if(!deck){let r=await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');if(!r.ok)throw Error('Deck API HTTP '+r.status);deck=await r.json()}let r=await fetch(`https://deckofcardsapi.com/api/deck/${deck.deck_id}/draw/?count=2`);if(!r.ok)throw Error('Draw API HTTP '+r.status);const d=await r.json();const cards=d.cards;const score=c=>{const n=parseInt(c.value);return Number.isFinite(n)?n:{JACK:11,QUEEN:12,KING:13,ACE:14}[c.value]||0};const winner=score(cards[0])===score(cards[1])?'Draw':score(cards[0])>score(cards[1])?'Player 1 wins':'Player 2 wins';out.innerHTML=`<div class="cards">${cards.map(c=>`<div class="card ${['HEARTS','DIAMONDS'].includes(c.suit)?'red':''}">${c.value} of ${c.suit}</div>`).join('')}</div><h2>${winner}</h2>`}catch(e){out.textContent='Error: '+e.message}}
+</script></html>
