@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>API Lab — Pokémon Explorer</title>
+<style>body{font-family:system-ui;max-width:720px;margin:auto;padding:24px}input,button{padding:12px;font-size:16px}button{cursor:pointer}.card{margin-top:20px;padding:20px;border:1px solid #ddd;border-radius:16px}img{width:160px;height:160px;object-fit:contain}</style>
+<h1>Pokémon Explorer</h1><p>API experiment: search a Pokémon and render live API data.</p>
+<input id="q" value="pikachu" aria-label="Pokemon name"><button onclick="loadPokemon()">Search</button><div id="out"></div>
+<script>
+async function loadPokemon(){const name=document.getElementById('q').value.trim().toLowerCase();const out=document.getElementById('out');if(!name)return;out.textContent='Loading…';try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+encodeURIComponent(name));if(!r.ok)throw Error('HTTP '+r.status);const p=await r.json();out.innerHTML=`<div class="card"><h2>${p.name}</h2><img src="${p.sprites.front_default}" alt="${p.name}"><p>Height: ${p.height} · Weight: ${p.weight}</p><p>Types: ${p.types.map(x=>x.type.name).join(', ')}</p></div>`}catch(e){out.textContent='Error: '+e.message}}
+loadPokemon();
+</script></html>
