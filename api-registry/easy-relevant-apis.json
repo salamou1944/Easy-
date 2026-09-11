@@ -1,28 +1,116 @@
 {
-  "registry_version": "0.1",
-  "status": "seed",
-  "purpose": "Provider-neutral catalog for APIs that may be useful to EASY",
+  "registry_version": "0.2",
+  "status": "curated-seed",
+  "purpose": "Provider-neutral API and model bank for EASY discovery and future integration",
+  "updated": "2026-09-11",
   "categories": {
-    "ai_llm": [],
-    "vision_product_dna": [],
-    "ocr": [],
-    "image_generation": [],
-    "video_generation": [],
-    "speech": [],
-    "search_market_research": [],
-    "ecommerce": [],
-    "marketing_ads": [],
-    "social": [],
-    "payments": [],
-    "delivery_tracking": [],
-    "maps": [],
-    "translation": [],
-    "analytics": [],
-    "moderation": [],
-    "product_barcode": []
+    "ai_llm": [
+      {"provider":"Google Gemini","purpose":"multimodal reasoning, image understanding, Product DNA, structured extraction","docs":"https://ai.google.dev/","priority":"P0"},
+      {"provider":"OpenAI","purpose":"reasoning, vision, structured generation, speech and image capabilities","docs":"https://platform.openai.com/docs/","priority":"P0"},
+      {"provider":"Anthropic","purpose":"LLM reasoning and instruction following","docs":"https://docs.anthropic.com/","priority":"P1"},
+      {"provider":"Mistral AI","purpose":"LLM and multimodal workloads","docs":"https://docs.mistral.ai/","priority":"P1"},
+      {"provider":"Groq","purpose":"low-latency inference and speech/LLM workloads","docs":"https://console.groq.com/docs","priority":"P1"},
+      {"provider":"OpenRouter","purpose":"provider/model routing and fallback","docs":"https://openrouter.ai/docs","priority":"P1"},
+      {"provider":"Hugging Face Inference Providers","purpose":"access to multiple open models/providers","docs":"https://huggingface.co/docs/inference-providers/","priority":"P1"},
+      {"provider":"Cloudflare Workers AI","purpose":"serverless open-model inference","docs":"https://developers.cloudflare.com/workers-ai/","priority":"P1"}
+    ],
+    "vision_product_dna": [
+      {"provider":"Google Gemini","purpose":"product image understanding and structured Product DNA","docs":"https://ai.google.dev/","priority":"P0"},
+      {"provider":"Cloudflare Workers AI","purpose":"vision/object understanding with hosted models","docs":"https://developers.cloudflare.com/workers-ai/models/","priority":"P1"},
+      {"provider":"Google Cloud Vision","purpose":"labels, objects, OCR and image analysis","docs":"https://cloud.google.com/vision/docs","priority":"P1"},
+      {"provider":"Azure AI Vision","purpose":"computer vision and image analysis","docs":"https://learn.microsoft.com/azure/ai-services/computer-vision/","priority":"P2"}
+    ],
+    "ocr": [
+      {"provider":"OCR.space","purpose":"OCR for product labels and visible text","docs":"https://ocr.space/ocrapi","priority":"P1"},
+      {"provider":"Google Cloud Vision OCR","purpose":"text detection in product imagery","docs":"https://cloud.google.com/vision/docs/ocr","priority":"P1"},
+      {"provider":"Google Document AI","purpose":"document extraction when seller uploads documents","docs":"https://cloud.google.com/document-ai/docs","priority":"P2"},
+      {"provider":"Nanonets","purpose":"OCR/document extraction","docs":"https://nanonets.com/api/","priority":"P2"}
+    ],
+    "image_generation": [
+      {"provider":"Replicate","purpose":"provider/model gateway for image generation and editing","docs":"https://replicate.com/docs","priority":"P0"},
+      {"provider":"Cloudflare Workers AI","purpose":"serverless image/model inference","docs":"https://developers.cloudflare.com/workers-ai/","priority":"P1"},
+      {"provider":"Stability AI","purpose":"image generation and editing","docs":"https://platform.stability.ai/docs","priority":"P1"},
+      {"provider":"fal.ai","purpose":"fast image/video model serving","docs":"https://docs.fal.ai/","priority":"P1"}
+    ],
+    "video_generation": [
+      {"provider":"Replicate","purpose":"video model gateway; multiple official models","docs":"https://replicate.com/docs/topics/models/official-models","priority":"P0"},
+      {"provider":"Runway","purpose":"video generation/editing API discovery","docs":"https://docs.dev.runwayml.com/","priority":"P1"},
+      {"provider":"Kling","purpose":"video generation provider discovery","docs":"https://klingai.com/global/dev","priority":"P1"},
+      {"provider":"fal.ai","purpose":"video model serving","docs":"https://docs.fal.ai/","priority":"P1"}
+    ],
+    "speech": [
+      {"provider":"OpenAI Speech","purpose":"speech-to-text and text-to-speech workflows","docs":"https://platform.openai.com/docs/guides/text-to-speech","priority":"P0"},
+      {"provider":"Deepgram","purpose":"speech recognition and TTS","docs":"https://developers.deepgram.com/","priority":"P1"},
+      {"provider":"ElevenLabs","purpose":"natural voice generation","docs":"https://elevenlabs.io/docs/api-reference","priority":"P1"},
+      {"provider":"Google Cloud Speech-to-Text","purpose":"voice input transcription","docs":"https://cloud.google.com/speech-to-text/docs","priority":"P1"}
+    ],
+    "search_market_research": [
+      {"provider":"Tavily","purpose":"web search and research for product/market intelligence","docs":"https://docs.tavily.com/","priority":"P0"},
+      {"provider":"Brave Search API","purpose":"web search","docs":"https://api.search.brave.com/app/documentation","priority":"P1"},
+      {"provider":"Exa","purpose":"semantic/web research and discovery","docs":"https://docs.exa.ai/","priority":"P1"},
+      {"provider":"Serper","purpose":"search engine results API","docs":"https://serper.dev/","priority":"P2"}
+    ],
+    "ecommerce": [
+      {"provider":"Shopify","purpose":"commerce/store/catalog integration","docs":"https://shopify.dev/docs/api","priority":"P1"},
+      {"provider":"WooCommerce","purpose":"commerce/catalog/order integration","docs":"https://woocommerce.github.io/woocommerce-rest-api-docs/","priority":"P1"},
+      {"provider":"BigCommerce","purpose":"commerce/catalog integration","docs":"https://developer.bigcommerce.com/docs","priority":"P2"},
+      {"provider":"eBay","purpose":"marketplace/catalog/listing integration","docs":"https://developer.ebay.com/api-docs/static/ebay-rest-landing.html","priority":"P2"},
+      {"provider":"Etsy","purpose":"marketplace/catalog integration","docs":"https://developers.etsy.com/documentation/","priority":"P2"},
+      {"provider":"Amazon SP-API","purpose":"seller/catalog/order data where eligible","docs":"https://developer-docs.amazon.com/sp-api/","priority":"P2"}
+    ],
+    "marketing_ads": [
+      {"provider":"Meta Marketing API","purpose":"future ad creation/management and campaign workflows","docs":"https://developers.facebook.com/docs/marketing-apis/","priority":"P0"},
+      {"provider":"Meta Ad Library","purpose":"ad research and creative intelligence","docs":"https://www.facebook.com/ads/library/","priority":"P0"},
+      {"provider":"Google Ads API","purpose":"future campaign automation/measurement","docs":"https://developers.google.com/google-ads/api/docs/start","priority":"P1"},
+      {"provider":"TikTok for Developers","purpose":"future social/ads integration","docs":"https://developers.tiktok.com/","priority":"P2"},
+      {"provider":"Snapchat Marketing API","purpose":"future advertising integration","docs":"https://developers.snap.com/api/marketing-api/","priority":"P2"},
+      {"provider":"LinkedIn Marketing API","purpose":"future marketing integration","docs":"https://learn.microsoft.com/linkedin/marketing/","priority":"P3"}
+    ],
+    "social": [
+      {"provider":"Meta Graph/Marketing APIs","purpose":"social publishing and business integrations where permitted","docs":"https://developers.facebook.com/docs/","priority":"P1"},
+      {"provider":"TikTok for Developers","purpose":"social platform integration","docs":"https://developers.tiktok.com/","priority":"P2"},
+      {"provider":"LinkedIn APIs","purpose":"professional social integration","docs":"https://learn.microsoft.com/linkedin/","priority":"P3"}
+    ],
+    "payments": [
+      {"provider":"Stripe","purpose":"future international payments","docs":"https://docs.stripe.com/api","priority":"P1"},
+      {"provider":"PayPal","purpose":"future international payments","docs":"https://developer.paypal.com/api/rest/","priority":"P1"},
+      {"provider":"Adyen","purpose":"payment infrastructure discovery","docs":"https://docs.adyen.com/api-explorer/","priority":"P2"},
+      {"provider":"Checkout.com","purpose":"payment infrastructure discovery","docs":"https://www.checkout.com/docs","priority":"P2"}
+    ],
+    "delivery_tracking": [
+      {"provider":"DHL APIs","purpose":"shipment tracking/logistics integration","docs":"https://developer.dhl.com/","priority":"P2"},
+      {"provider":"FedEx APIs","purpose":"shipment tracking/logistics integration","docs":"https://developer.fedex.com/","priority":"P2"},
+      {"provider":"UPS APIs","purpose":"shipment tracking/logistics integration","docs":"https://developer.ups.com/","priority":"P2"},
+      {"provider":"Shippo","purpose":"multi-carrier shipping/tracking","docs":"https://docs.goshippo.com/","priority":"P2"},
+      {"provider":"EasyPost","purpose":"shipping/tracking aggregation","docs":"https://docs.easypost.com/","priority":"P2"}
+    ],
+    "maps": [
+      {"provider":"Google Maps Platform","purpose":"maps, geocoding, places and delivery UX","docs":"https://developers.google.com/maps","priority":"P1"},
+      {"provider":"Mapbox","purpose":"maps/geocoding/navigation","docs":"https://docs.mapbox.com/api/","priority":"P1"},
+      {"provider":"OpenStreetMap Nominatim","purpose":"geocoding/open geographic data","docs":"https://nominatim.org/release-docs/latest/api/Overview/","priority":"P2"}
+    ],
+    "translation": [
+      {"provider":"Google Cloud Translation","purpose":"Arabic/French/English translation","docs":"https://cloud.google.com/translate/docs","priority":"P1"},
+      {"provider":"DeepL API","purpose":"high-quality translation where languages are supported","docs":"https://developers.deepl.com/docs","priority":"P1"},
+      {"provider":"AWS Translate","purpose":"translation fallback","docs":"https://docs.aws.amazon.com/translate/","priority":"P2"}
+    ],
+    "analytics": [
+      {"provider":"Google Analytics Data API","purpose":"future product/marketing analytics","docs":"https://developers.google.com/analytics/devguides/reporting/data/v1","priority":"P2"},
+      {"provider":"PostHog","purpose":"product analytics, funnels and feature usage","docs":"https://posthog.com/docs/api","priority":"P1"},
+      {"provider":"Mixpanel","purpose":"product analytics and funnels","docs":"https://developer.mixpanel.com/reference/overview","priority":"P2"}
+    ],
+    "moderation": [
+      {"provider":"OpenAI Moderation","purpose":"text/image safety classification","docs":"https://platform.openai.com/docs/guides/moderation","priority":"P1"},
+      {"provider":"Google Cloud Natural Language","purpose":"text analysis/moderation support","docs":"https://cloud.google.com/natural-language/docs","priority":"P2"}
+    ],
+    "product_barcode": [
+      {"provider":"GS1","purpose":"official standards and GTIN/barcode ecosystem discovery","docs":"https://www.gs1.org/standards","priority":"P1"},
+      {"provider":"UPCitemdb","purpose":"barcode/product lookup discovery","docs":"https://devs.upcitemdb.com/","priority":"P2"}
+    ]
   },
   "selection_policy": {
     "must_check": ["availability", "authentication", "rate_limits", "pricing", "commercial_use", "privacy", "reliability", "output_quality"],
-    "integration_rule": "Use provider-neutral adapters and never bypass EASY Product Integrity."
+    "integration_rule": "Use provider-neutral adapters and never bypass EASY Product Integrity.",
+    "secret_rule": "Never store API keys, tokens, OAuth secrets, passwords or private credentials in this repository."
   }
 }
