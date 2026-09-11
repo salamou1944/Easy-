@@ -1,0 +1,28 @@
+{
+  "registry_version": "0.1",
+  "status": "seed",
+  "purpose": "Provider-neutral catalog for APIs that may be useful to EASY",
+  "categories": {
+    "ai_llm": [],
+    "vision_product_dna": [],
+    "ocr": [],
+    "image_generation": [],
+    "video_generation": [],
+    "speech": [],
+    "search_market_research": [],
+    "ecommerce": [],
+    "marketing_ads": [],
+    "social": [],
+    "payments": [],
+    "delivery_tracking": [],
+    "maps": [],
+    "translation": [],
+    "analytics": [],
+    "moderation": [],
+    "product_barcode": []
+  },
+  "selection_policy": {
+    "must_check": ["availability", "authentication", "rate_limits", "pricing", "commercial_use", "privacy", "reliability", "output_quality"],
+    "integration_rule": "Use provider-neutral adapters and never bypass EASY Product Integrity."
+  }
+}
