@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>API Lab — Trivia Sprint</title>
+<style>body{font-family:system-ui;max-width:720px;margin:auto;padding:24px}button{padding:12px;margin:6px;font-size:16px}.box{padding:20px;border:1px solid #ddd;border-radius:16px;margin-top:20px}.score{font-weight:700}</style>
+<h1>Trivia Sprint</h1><p>API experiment: turn remote question data into a mobile quiz.</p><div id="app">Loading…</div>
+<script>
+let questions=[],i=0,score=0;
+function decode(s){const t=document.createElement('textarea');t.innerHTML=s;return t.value}
+async function start(){const app=document.getElementById('app');try{const r=await fetch('https://opentdb.com/api.php?amount=5&type=multiple');if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();questions=d.results;i=0;score=0;render()}catch(e){app.textContent='Error: '+e.message}}
+function render(){const app=document.getElementById('app');if(i>=questions.length){app.innerHTML=`<div class="box"><h2>Finished</h2><p class="score">Score: ${score}/${questions.length}</p><button onclick="start()">Play again</button></div>`;return}const q=questions[i];const answers=[q.correct_answer,...q.incorrect_answers].sort(()=>Math.random()-0.5);app.innerHTML=`<div class="box"><p>Question ${i+1}/${questions.length}</p><h2>${decode(q.question)}</h2>${answers.map(a=>`<button onclick="answer(this,${JSON.stringify(a)},${JSON.stringify(q.correct_answer)})">${decode(a)}</button>`).join('')}<p class="score">Score: ${score}</p></div>`}
+function answer(btn,a,c){document.querySelectorAll('button').forEach(b=>b.disabled=true);if(a===c)score++;i++;setTimeout(render,450)}
+start();
+</script></html>
