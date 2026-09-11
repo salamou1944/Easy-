@@ -1,12 +1,14 @@
 # EASY API Registry
 
-This directory is the central catalog for APIs that may be useful to EASY.
+The central API Bank for EASY. This repository stores discovery metadata and integration candidates; it does not store secrets.
 
-## Sources
+## What is stored here
 
-- public-apis/public-apis — large community-maintained collection of free APIs.
-- public-api-lists/public-api-lists — curated collection with a JSON API.
-- BuiltByEcho/public-api-finder — combines multiple API sources for discovery.
+- Curated APIs and model providers relevant to EASY.
+- Official documentation links.
+- EASY priority (`P0` = immediate architecture relevance, `P1` = important, `P2` = later, `P3` = optional).
+- Discovery sources for expanding the bank.
+- Rules for evaluating providers before integration.
 
 ## EASY priority areas
 
@@ -26,10 +28,35 @@ This directory is the central catalog for APIs that may be useful to EASY.
 14. Moderation / safety
 15. Product and barcode lookup
 
-## Rule
+## Architecture rule
 
-Do not connect an API to the production EASY seller flow just because it appears in this registry. Each provider must be evaluated for availability, authentication, limits, pricing, commercial-use terms, reliability, privacy, and output quality before integration.
+An API appearing in this registry does **not** mean EASY should integrate it immediately.
 
-## Architecture
+Production integrations must use provider-neutral adapters. Seller Flow must remain provider-agnostic, and Product Integrity must never be bypassed.
 
-APIs are intended to sit behind provider-neutral adapters so EASY can switch providers without redesigning the seller-facing flow or bypassing Product Integrity.
+## Provider evaluation checklist
+
+Before production integration, verify:
+
+- API is currently available.
+- Authentication mechanism and required scopes.
+- Rate limits and quotas.
+- Current pricing and free/trial limits.
+- Commercial-use rights and model licenses.
+- Privacy and data-retention behavior.
+- Reliability and operational maturity.
+- Input/output quality for the exact EASY task.
+- Geographic availability, especially Algeria where relevant.
+- Whether the provider supports the required image/video/text/audio formats.
+
+## Secrets policy
+
+**Never commit** API keys, access tokens, OAuth client secrets, passwords, cookies, private certificates or other credentials to GitHub.
+
+Secrets belong in Replit Secrets/environment variables or another dedicated secret manager.
+
+## Discovery sources
+
+See `SOURCES.md` for the maintained list of public catalogs, official provider documentation and model discovery sources.
+
+The bank is deliberately curated rather than blindly importing tens of thousands of APIs. A huge catalog is useful for discovery, but every production candidate must still be verified individually.
