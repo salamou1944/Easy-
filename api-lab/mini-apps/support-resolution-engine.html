@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support Resolution Engine — EASY API Lab</title>
+  <style>
+    body{font-family:system-ui,sans-serif;max-width:900px;margin:40px auto;padding:0 18px;line-height:1.5}
+    textarea,select,button{font:inherit;width:100%;box-sizing:border-box;padding:12px;margin-top:8px}
+    button{cursor:pointer}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:18px;margin-top:18px}
+    .result{white-space:pre-wrap;background:#f6f6f6;border-radius:10px;padding:14px}
+    @media(max-width:700px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <h1>Support Resolution Engine</h1>
+  <p>Sales demo: classify a support request, retrieve mock order/policy context, decide whether it is safe to resolve automatically, and draft a human-reviewable response.</p>
+
+  <div class="grid">
+    <div class="card">
+      <label>Customer ticket</label>
+      <textarea id="ticket" rows="9">Where is my order #1042? It was supposed to arrive yesterday.</textarea>
+      <button onclick="runEngine()">Analyze ticket</button>
+    </div>
+    <div class="card">
+      <label>Demo customer</label>
+      <select id="customer">
+        <option value="1042">Order #1042 — shipped, delayed</option>
+        <option value="1043">Order #1043 — delivered</option>
+        <option value="1044">Order #1044 — processing</option>
+      </select>
+      <div id="result" class="result" style="margin-top:12px">Result will appear here.</div>
+    </div>
+  </div>
+
+<script>
+const orders={
+  1042:{status:'shipped',carrier:'DemoExpress',eta:'tomorrow',issue:'delivery delay'},
+  1043:{status:'delivered',carrier:'DemoExpress',eta:'delivered yesterday',issue:null},
+  1044:{status:'processing',carrier:'DemoExpress',eta:'2–3 business days',issue:null}
+};
+
+function runEngine(){
+  const ticket=document.getElementById('ticket').value.trim();
+  const id=document.getElementById('customer').value;
+  const order=orders[id];
+  const t=ticket.toLowerCase();
+  let intent='general inquiry';
+  if(/refund|money back|remboursement/.test(t)) intent='refund request';
+  else if(/cancel|annul/.test(t)) intent='cancellation request';
+  else if(/where|status|track|delivery|arriv|livraison|commande/.test(t)) intent='order status';
+  else if(/broken|damaged|defect|problem|problème/.test(t)) intent='product issue';
+
+  const risky=['refund request','cancellation request','product issue'].includes(intent);
+  const autoResolve=!risky && order.status==='shipped';
+  const decision=autoResolve?'AUTO-RESOLVE':'HUMAN REVIEW';
+  const confidence=autoResolve?'0.94':'0.72';
+  const response= intent==='order status'
+    ? `Hello, your order #${id} is currently ${order.status}. Carrier: ${order.carrier}. Expected delivery: ${order.eta}. We are monitoring it and will escalate if the delay continues.`
+    : 'Thanks for contacting us. We have received your request and a support specialist will review it shortly.';
+
+  document.getElementById('result').textContent=
+`INTENT: ${intent}\nCONFIDENCE: ${confidence}\nDECISION: ${decision}\n\nORDER CONTEXT\nStatus: ${order.status}\nCarrier: ${order.carrier}\nETA: ${order.eta}\n\nDRAFT RESPONSE\n${response}\n\nSAFETY BOUNDARY\n${risky?'Do not resolve automatically; require human approval.':'Safe for demo auto-resolution, subject to production policy and real order verification.'}`;
+}
+</script>
+</body>
+</html>
