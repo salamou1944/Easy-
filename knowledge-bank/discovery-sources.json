@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "purpose": "High-signal discovery map for APIs, software, models, datasets, research and tools useful to EASY or future projects.",
+  "sources": [
+    {"name":"public-apis/public-apis","type":"api_directory","scope":"public APIs","url":"https://github.com/public-apis/public-apis","priority":"high"},
+    {"name":"public-api-lists/public-api-lists","type":"api_directory","scope":"curated public APIs","url":"https://github.com/public-api-lists/public-api-lists","priority":"high"},
+    {"name":"BuiltByEcho/public-api-finder","type":"api_discovery","scope":"API search and live filtering","url":"https://github.com/BuiltByEcho/public-api-finder","priority":"high"},
+    {"name":"APIs-guru/openapi-directory","type":"openapi_directory","scope":"OpenAPI specifications","url":"https://github.com/APIs-guru/openapi-directory","priority":"high"},
+    {"name":"mohabdelkarim/awesome-ai-resources","type":"knowledge_directory","scope":"AI courses, papers, tools, APIs, agents, RAG, datasets","url":"https://github.com/mohabdelkarim/awesome-ai-resources","priority":"high"},
+    {"name":"hades217/awesome-ai","type":"knowledge_directory","scope":"AI models, APIs, agents, RAG, coding, datasets, research","url":"https://github.com/hades217/awesome-ai","priority":"high"},
+    {"name":"12britz/awesome-free-models","type":"model_directory","scope":"free/open-weight AI models, APIs and tools","url":"https://github.com/12britz/awesome-free-models","priority":"high"},
+    {"name":"edwardtay/awesome-ai","type":"knowledge_directory","scope":"AI APIs, tools, frameworks, models and research","url":"https://github.com/edwardtay/awesome-ai","priority":"high"},
+    {"name":"eudk/awesome-ai-tools","type":"tool_directory","scope":"AI tools, models, agents, automation and infrastructure","url":"https://github.com/eudk/awesome-ai-tools","priority":"medium"},
+    {"name":"awesomelists.io","type":"meta_directory","scope":"curated awesome lists across AI, software, open data, security, engineering and more","url":"https://awesomelists.io/","priority":"high"},
+    {"name":"awesomelist.dev","type":"meta_directory","scope":"searchable curated GitHub lists and projects","url":"https://awesomelist.dev/","priority":"high"}
+  ],
+  "future_domains": ["AI","agents","MCP","APIs","open_source","datasets","models","research","developer_tools","security","privacy","ecommerce","marketing","ads","social","payments","logistics","maps","search","automation","design","media","education","finance","analytics","robotics","IoT","science","engineering","emerging_technology"]
+}
