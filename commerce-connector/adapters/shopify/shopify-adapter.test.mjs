@@ -70,5 +70,5 @@ const status = await unauthorized.getConnectionStatus();
 assert.equal(status.connected, false);
 assert.equal(status.error, "authentication_required");
 
-await assert.rejects(() => createShopifyAdapter({ shop: "demo.myshopify.com" }), /authentication_required/);
+assert.throws(() => createShopifyAdapter({ shop: "demo.myshopify.com" }), /authentication_required/);
 console.log("Shopify adapter fixture tests passed");
