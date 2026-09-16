@@ -2,13 +2,11 @@
 
 ## Purpose
 
-Provide a provider-neutral boundary between EASY and external commerce platforms. The first implementation target is Shopify, followed by WooCommerce when the first connector contract is proven.
+Provide a provider-neutral boundary between EASY and external commerce platforms. Shopify is the first connector; WooCommerce remains replaceable and can follow after the contract is proven.
 
 The layer is intentionally read-first: it imports seller/store context into EASY without allowing an external platform to bypass Product DNA, Product Integrity, validation, or EASY business rules.
 
 ## Initial scope
-
-The first connector contract supports:
 
 - Store connection metadata (without storing credentials in the repository)
 - Product/catalog read
@@ -23,20 +21,14 @@ Write operations are deliberately out of scope for the first slice. They require
 
 `Provider API -> Provider Adapter -> CommerceDataProvider -> EASY normalization -> Product DNA / Product Integrity -> Seller flow`
 
-Provider-specific request/response shapes must stay inside the adapter. Seller-facing EASY flows consume the normalized contract only.
+Provider-specific request/response shapes stay inside the adapter. Seller-facing EASY flows consume the normalized contract only.
 
-## Provider-neutral contract
+## Current implementation
 
-Conceptual methods:
-
-- `getConnectionStatus()`
-- `listProducts(cursor?)`
-- `getProduct(productId)`
-- `listInventory(cursor?)`
-- `listOrders(params?)`
-- `mapProductId(externalId)`
-
-Normalized objects should expose stable identifiers and only the fields required by EASY. Provider-specific fields may be preserved under a clearly namespaced `providerMetadata` object when needed.
+- Provider-neutral contract: implemented.
+- Shopify read-only adapter: implemented as an isolated adapter boundary.
+- Runtime credential wiring: not enabled in GitHub; credentials belong in Replit Secrets or the production secret manager.
+- Integration tests against a live Shopify shop: pending runtime access and an authorized test shop/token.
 
 ## Security and integrity rules
 
@@ -49,15 +41,21 @@ Normalized objects should expose stable identifiers and only the fields required
 7. Log connector health and non-sensitive error information; never log credentials or raw authorization headers.
 8. Provider availability, authentication, rate limits, pricing, commercial rights, privacy, reliability, and output quality must be verified before production activation.
 
-## First connector
+## Shopify activation checklist
 
-**Shopify** is the first target because it is already present in the EASY API registry as an ecommerce capability. The adapter should initially use read-only catalog/inventory/order access and remain replaceable by WooCommerce or another provider.
+- Verify the currently supported Shopify Admin API version and endpoint availability.
+- Verify authentication and exact read-only scopes.
+- Verify rate limits and commercial terms.
+- Verify privacy/data-retention requirements.
+- Run fixture/unit tests.
+- Run integration tests only with runtime secrets.
+- Confirm connector failure does not break the EASY seller flow.
 
 ## Definition of done for the first slice
 
 - Contract documented and provider-neutral.
-- Shopify adapter boundary documented without secrets.
+- Shopify adapter implemented behind the contract.
 - Normalized product/catalog shape defined.
-- Validation boundary documented.
+- Validation and Product Integrity boundaries documented.
 - No write action or credential committed.
 - Integration can be disabled without breaking the seller-facing EASY flow.
