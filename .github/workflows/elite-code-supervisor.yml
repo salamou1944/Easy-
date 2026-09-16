@@ -1,0 +1,23 @@
+name: elite-code-supervisor
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '*/10 * * * *'
+
+jobs:
+  supervise:
+    uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
+    with:
+      goal: >-
+        Continue the highest-value unfinished engineering work in EASY toward a usable, sellable product.
+        Inspect the real repository state first and obey PROJECT-RULES.md. Prioritize practical blockers and
+        incomplete capabilities over polish. For each change, implement the smallest safe step, run relevant
+        repository tests/verification, repair failures introduced by the change, and leave concrete evidence.
+        Do not modify CI workflows, secrets, credentials, authentication policy, or deployment configuration.
+    permissions:
+      contents: write
+      models: read
+      copilot-requests: write
