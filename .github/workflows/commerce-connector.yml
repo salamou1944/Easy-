@@ -25,3 +25,5 @@ jobs:
           node-version: 22
       - name: Run Shopify adapter fixtures
         run: node --test commerce-connector/adapters/shopify/shopify-adapter.test.mjs
+      - name: Run commerce import boundary tests
+        run: node --test commerce-connector/core/commerce-import.test.mjs
