@@ -22,7 +22,7 @@ export function createShopifyAdapter({ shop, accessToken, apiVersion = DEFAULT_A
       const payload = await response.json();
       if (payload.errors?.length) {
         const message = String(payload.errors[0]?.message || "unknown_provider_error").toLowerCase();
-        const code = message.includes("access") || message.includes("permission") ? "permission_denied" : "unknown_provider_error";
+        const code = message.includes("access") || message.includes("permission") || message.includes("scope") ? "permission_denied" : "unknown_provider_error";
         throw Object.assign(new Error(code), { code });
       }
       return payload.data;
@@ -30,6 +30,13 @@ export function createShopifyAdapter({ shop, accessToken, apiVersion = DEFAULT_A
       if (error?.code) throw error;
       throw Object.assign(new Error("provider_unavailable"), { code: "provider_unavailable", cause: error });
     }
+  }
+
+  function nextCursor(connection) {
+    if (!connection?.pageInfo?.hasNextPage) return null;
+    const cursor = connection.edges?.at(-1)?.cursor ?? null;
+    if (!cursor) throw Object.assign(new Error("unknown_provider_error"), { code: "unknown_provider_error" });
+    return cursor;
   }
 
   function normalizeProduct(product) {
@@ -47,13 +54,28 @@ export function createShopifyAdapter({ shop, accessToken, apiVersion = DEFAULT_A
 
   return {
     async getConnectionStatus() {
-      try { await graphql(`query ConnectionCheck { shop { name } }`); return { connected: true, provider: "shopify", scopes: [], checkedAt: now(), capabilities: { products: true, inventory: true, orders: true } }; }
-      catch (error) { return { connected: false, provider: "shopify", scopes: [], checkedAt: now(), capabilities: { products: false, inventory: false, orders: false }, error: error.code || "provider_unavailable" }; }
+      try {
+        await graphql(`query ConnectionCheck { shop { name } }`);
+        const capabilities = { products: false, inventory: false, orders: false };
+        const probes = [
+          ["products", `query ProductsCapability { products(first: 1) { nodes { id } } }`],
+          ["inventory", `query InventoryCapability { productVariants(first: 1) { nodes { id } } }`],
+          ["orders", `query OrdersCapability { orders(first: 1) { nodes { id } } }`],
+        ];
+        for (const [name, query] of probes) {
+          try { await graphql(query); capabilities[name] = true; } catch (error) {
+            if (error?.code === "authentication_required" || error?.code === "provider_unavailable" || error?.code === "rate_limited") throw error;
+          }
+        }
+        return { connected: true, provider: "shopify", scopes: [], checkedAt: now(), capabilities };
+      } catch (error) {
+        return { connected: false, provider: "shopify", scopes: [], checkedAt: now(), capabilities: { products: false, inventory: false, orders: false }, error: error.code || "provider_unavailable" };
+      }
     },
     async listProducts(cursor) {
       const data = await graphql(`query Products($after: String) { products(first: 50, after: $after) { nodes { ${PRODUCT_FIELDS} } pageInfo { hasNextPage } edges { cursor } } }`, { after: cursor || null });
       const connection = data.products;
-      return { items: (connection?.nodes ?? []).map(normalizeProduct), nextCursor: connection?.pageInfo?.hasNextPage ? connection.edges?.at(-1)?.cursor ?? null : null };
+      return { items: (connection?.nodes ?? []).map(normalizeProduct), nextCursor: nextCursor(connection) };
     },
     async getProduct(externalId) {
       const data = await graphql(`query Product($id: ID!) { product(id: $id) { ${PRODUCT_FIELDS} } }`, { id: String(externalId) });
@@ -68,12 +90,12 @@ export function createShopifyAdapter({ shop, accessToken, apiVersion = DEFAULT_A
         const available = level.quantities?.find((q) => q.name === "available")?.quantity ?? null;
         items.push({ externalId: String(variant.inventoryItem?.id ?? variant.id), sku: variant.sku ?? null, quantity: available, availabilityStatus: available === null ? "unknown" : available > 0 ? "available" : "unavailable", providerMetadata: { provider: "shopify", inventoryLevelId: level.id, locationId: level.location?.id ?? null, locationName: level.location?.name ?? null } });
       }
-      return { items, nextCursor: connection?.pageInfo?.hasNextPage ? connection.edges?.at(-1)?.cursor ?? null : null };
+      return { items, nextCursor: nextCursor(connection) };
     },
     async listOrders(params = {}) {
       const data = await graphql(`query Orders($after: String, $query: String) { orders(first: 50, after: $after, query: $query) { nodes { id name displayFulfillmentStatus createdAt currentTotalPriceSet { shopMoney { amount currencyCode } } } pageInfo { hasNextPage } edges { cursor } } }`, { after: params.cursor || null, query: params.query || null });
       const connection = data.orders;
-      return { items: (connection?.nodes ?? []).map((order) => ({ externalId: String(order.id), status: order.displayFulfillmentStatus ?? null, name: order.name ?? null, createdAt: order.createdAt ?? null, total: order.currentTotalPriceSet?.shopMoney?.amount ?? null, currency: order.currentTotalPriceSet?.shopMoney?.currencyCode ?? null, customer: null, providerMetadata: { provider: "shopify" } })), nextCursor: connection?.pageInfo?.hasNextPage ? connection.edges?.at(-1)?.cursor ?? null : null };
+      return { items: (connection?.nodes ?? []).map((order) => ({ externalId: String(order.id), status: order.displayFulfillmentStatus ?? null, name: order.name ?? null, createdAt: order.createdAt ?? null, total: order.currentTotalPriceSet?.shopMoney?.amount ?? null, currency: order.currentTotalPriceSet?.shopMoney?.currencyCode ?? null, customer: null, providerMetadata: { provider: "shopify" } })), nextCursor: nextCursor(connection) };
     },
     mapProductId(externalId) { return { provider: "shopify", externalId: String(externalId) }; },
   };
