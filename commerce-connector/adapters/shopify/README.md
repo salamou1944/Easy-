@@ -1,7 +1,7 @@
 # Shopify Adapter — Read-Only First Slice
 
 ## Status
-Implemented as an isolated read-only adapter using the Shopify GraphQL Admin API. Runtime credential wiring and live integration tests remain intentionally outside the repository until the EASY runtime and an authorized test shop/token are available.
+Implemented as an isolated read-only adapter using the Shopify GraphQL Admin API. Fixture tests and CI coverage are present. A manual live smoke path is now included, but it requires runtime-only credentials for an authorized Shopify test shop.
 
 ## Responsibilities
 - Implement `CommerceDataProvider` for Shopify.
@@ -27,11 +27,22 @@ Shopify data is untrusted input. Before it reaches seller-facing creative workfl
 
 The adapter itself does not decide Product DNA or Product Integrity outcomes.
 
+## Runtime activation
+The live smoke test is `live-smoke.mjs`. It requires these runtime-only environment variables:
+
+- `SHOPIFY_SHOP`
+- `SHOPIFY_ACCESS_TOKEN`
+- `SHOPIFY_API_VERSION` (optional; defaults to `2026-07`)
+
+It verifies connection status/capabilities and performs read-only product, inventory and order reads. It does not write to Shopify and does not print the access token.
+
+GitHub Actions workflow: `.github/workflows/shopify-live-smoke.yml`. Run it manually only after the repository secrets point to an authorized test shop with the required least-privilege scopes.
+
 ## Runtime activation checklist
 - Verify current Shopify API availability/version.
 - Verify authentication and exact scopes for products, inventory and orders.
 - Verify rate limits and pricing/commercial terms.
 - Verify privacy/data-retention requirements.
 - Run fixture/unit tests.
-- Run integration tests only with runtime secrets and an authorized test shop.
+- Run the live smoke workflow with runtime secrets and an authorized test shop.
 - Confirm connector failure does not break the EASY seller flow.
