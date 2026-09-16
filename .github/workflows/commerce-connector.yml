@@ -1,0 +1,27 @@
+name: Commerce Connector
+
+on:
+  push:
+    paths:
+      - "commerce-connector/**"
+      - ".github/workflows/commerce-connector.yml"
+  pull_request:
+    paths:
+      - "commerce-connector/**"
+      - ".github/workflows/commerce-connector.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  shopify-fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Shopify adapter fixtures
+        run: node --test commerce-connector/adapters/shopify/shopify-adapter.test.mjs
