@@ -5,6 +5,12 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+  schedule:
+    - cron: '*/10 * * * *'
+
+concurrency:
+  group: easy-elite-supervisor
+  cancel-in-progress: false
 
 jobs:
   supervise:
@@ -12,14 +18,16 @@ jobs:
     secrets: inherit
     with:
       goal: >-
-        Continue the highest-value unfinished engineering work in EASY toward a usable, sellable product.
-        Inspect the real repository state first and obey PROJECT-RULES.md. Prioritize practical blockers and
-        incomplete capabilities over polish. For each change, implement the smallest safe step, run relevant
-        repository tests/verification, repair failures introduced by the change, and leave concrete evidence.
-        Do not modify CI workflows, secrets, credentials, authentication policy, or deployment configuration.
-        If the configured LLM provider is unavailable, do not fabricate completion. Run the corrected ARMY-14
-        provider-independent pipeline only as pipeline evidence, never as task completion; continue repository-
-        native verification and safe deterministic work without promoting blocked work to VERIFIED.
+        Act as the autonomous principal engineer for EASY. Inspect the real repository state first and obey
+        PROJECT-RULES.md. Select the highest-value unfinished capability from the EASY queue and actually build
+        it; do not merely audit, describe, or mark an existing passing test as completion. Prefer practical,
+        sellable functionality over polish. For each change: implement the smallest coherent capability, add
+        task-specific acceptance tests, run the full relevant verification, inspect the resulting behavior,
+        repair regressions, and leave concrete evidence. Preserve product identity, colors, text and logos in
+        creative workflows. Do not modify CI workflows, secrets, credentials, authentication policy, or
+        deployment configuration. If no LLM provider is available, never fabricate completion: perform only
+        deterministic repository-native engineering that can be proven, then emit an exact blocked handoff for
+        the remaining provider-dependent capability. ARMY-14 pipeline evidence is never task completion.
     permissions:
       contents: write
       id-token: write
