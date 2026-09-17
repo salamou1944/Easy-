@@ -7,13 +7,13 @@ on:
 
 permissions:
   contents: read
-  models: read
+  copilot-requests: write
 
 jobs:
   practical:
     name: ${{ matrix.role }} practical test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -80,26 +80,25 @@ jobs:
           test -f ".elite-code-tools/${{ matrix.profile }}"
           cp ".elite-code-tools/${{ matrix.profile }}" /tmp/soldier-profile.md
 
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+
       - name: Run soldier against EASY
         id: soldier
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          EASY_OPERATOR_GITHUB_MODELS_ENDPOINT: https://models.github.ai/inference
-          EASY_OPERATOR_GITHUB_MODELS_MODEL: openai/gpt-4o-mini
-          EASY_OPERATOR_WORKSPACE: ${{ github.workspace }}
-          EASY_OPERATOR_CODER_ATTEMPTS: '2'
         run: |
           cat > /tmp/goal.txt <<'EOF'
           You are the ARMY-14 ${{ matrix.role }} soldier operating at the Elite capability stage.
           This is a PRACTICAL test against the real EASY repository, not a documentation exercise.
           Read PROJECT-RULES.md first and obey it.
-          
+
           Your role profile is supplied in /tmp/soldier-profile.md and is authoritative for your role.
-          
+
           Practical mission:
           ${{ matrix.mission }}
-          
+
           Rules for this test:
           - Inspect the actual repository before acting.
           - Do not invent missing capabilities or pretend a planned change is implemented.
@@ -107,9 +106,19 @@ jobs:
           - Never add secrets, tokens, credentials, or private data.
           - If no applicable implementation change exists, perform the strongest meaningful read/test/verification possible and document why.
           - Run relevant tests or checks after the work.
+          - Do not modify CI workflows, secrets, credentials, authentication policy, or deployment configuration.
+          - Do not commit or push changes.
           - Finish with a concise evidence report at /tmp/soldier-result.md containing: role, files inspected, change made (or verified no-op), tests/checks run, failures found, root causes, and final result.
           EOF
-          node .elite-code-tools/apps/easy-developer-platform/autonomous-coder.mjs "$(cat /tmp/goal.txt)"
+          copilot -p "$(cat /tmp/goal.txt)\n\nROLE PROFILE:\n$(cat /tmp/soldier-profile.md)" -s --no-ask-user \
+            --allow-tool='shell(git:*)' \
+            --allow-tool='shell(find:*)' \
+            --allow-tool='shell(ls:*)' \
+            --allow-tool='shell(cat:*)' \
+            --allow-tool='shell(node:*)' \
+            --allow-tool='shell(npm:*)' \
+            --allow-tool='shell(python:*)' \
+            --allow-tool=write
 
       - name: Verify practical result
         if: always()
