@@ -38,10 +38,9 @@ jobs:
           - {role: Product-MVP, mission: Act as the ARMY-14 Product/MVP soldier. Inspect EASY and PROJECT-RULES.md first. Improve one real seller/customer MVP outcome in a usable, sellable path. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Research-Capability, mission: Act as the ARMY-14 Research/Capability soldier. Inspect EASY and PROJECT-RULES.md first. Discover one evidence-backed capability gap or reusable opportunity and implement a safe applicable improvement. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
 
-    # Sequential execution prevents concurrent supervisor commits from colliding.
-    # OIDC is used only for the authenticated Railway LLM plan bridge.
-    # The bridge and plan executor both fail closed; a successful workflow requires verified changes or a verified no-op.
-    # Railway bridge is now backed by the deployed Responses API adapter.
+    # Provider-independent fallback is intentionally available: an exhausted external LLM
+    # must not be misreported as a successful soldier, and the practical runner must pass.
+    # OIDC remains available for a configured paid provider but is not required for this gate.
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
     secrets: inherit
     with:
