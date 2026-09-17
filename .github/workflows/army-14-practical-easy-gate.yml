@@ -7,14 +7,12 @@ on:
 
 permissions:
   contents: read
-  models: read
-  copilot-requests: write
 
 jobs:
   practical:
     name: ${{ matrix.role }} practical test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -56,55 +54,48 @@ jobs:
           This is a PRACTICAL execution test against the real EASY repository, not documentation.
           Read PROJECT-RULES.md first and obey it. Your authoritative role profile is in /tmp/soldier-profile.md.
           Mission: ${{ matrix.mission }}
-          Inspect the actual repository before acting. Make safe repository-supported changes only. Never add secrets or credentials. Never modify CI workflows, authentication policy, deployment configuration, or secrets. Do not commit or push. If no implementation change is justified, perform the strongest meaningful verification and document why. Run relevant tests/checks. Finish with a concise evidence report at /tmp/soldier-result.md containing role, files inspected, change made or verified no-op, tests/checks, failures/root causes, and final result.
-          Return a JSON coding plan with summary and changes array suitable for autonomous-coder.mjs.
+          Inspect the actual repository before acting. Make safe repository-supported changes only. Never add secrets or credentials. Never modify CI workflows, authentication policy, deployment configuration, or secrets. Do not commit or push. If no implementation change is justified, perform the strongest meaningful verification and document why. Run relevant tests/checks.
+          Your final output must be JSON in the autonomous-coder format and must accurately state whether the practical change was verified.
           EOF
-      - name: Generate soldier plan with GitHub AI inference
-        id: planner
-        continue-on-error: true
-        uses: actions/ai-inference@v2.1.1
-        with:
-          prompt: |
-            Act as the ${{ matrix.role }} ARMY-14 soldier for a practical coding task in EASY.
-            Read /tmp/soldier-goal.txt and /tmp/soldier-profile.md plus the repository files supplied as context.
-            Produce only JSON: {"summary":"...","changes":[{"path":"relative/path","content":"complete file content"}]}.
-            Make minimal evidence-driven changes. Never change .github/workflows, secrets, credentials, auth policy, or deployment configuration. If no safe change is justified, return changes: [].
-          file_input: |
-            goal: /tmp/soldier-goal.txt
-            profile: /tmp/soldier-profile.md
-            rules: PROJECT-RULES.md
-            package: package.json
-          token: ${{ github.token }}
-      - name: Apply and verify soldier plan
-        id: apply
-        if: steps.planner.conclusion == 'success'
+      - name: Run soldier directly through Elite provider ladder
+        id: soldier
         continue-on-error: true
         env:
-          EASY_OPERATOR_PLAN_FILE: ${{ steps.planner.outputs.response-file }}
+          EASY_OPERATOR_LLM_API_KEY: ${{ secrets.EASY_OPENAI_API_KEY || secrets.OPENAI_API_KEY }}
+          EASY_OPERATOR_LLM_ENDPOINT: ${{ vars.EASY_OPERATOR_LLM_ENDPOINT || 'https://api.openai.com/v1/chat/completions' }}
+          EASY_OPERATOR_LLM_MODEL: ${{ vars.EASY_OPERATOR_LLM_MODEL || 'gpt-4o-mini' }}
+          EASY_OPERATOR_LLM_FALLBACK_MODEL: ${{ vars.EASY_OPERATOR_LLM_FALLBACK_MODEL || '' }}
+          EASY_OPERATOR_SECONDARY_LLM_ENDPOINT: ${{ vars.EASY_OPERATOR_SECONDARY_LLM_ENDPOINT || '' }}
+          EASY_OPERATOR_SECONDARY_LLM_MODEL: ${{ vars.EASY_OPERATOR_SECONDARY_LLM_MODEL || '' }}
+          EASY_OPERATOR_SECONDARY_LLM_API_KEY: ${{ secrets.EASY_SECONDARY_LLM_API_KEY || '' }}
+          EASY_OPERATOR_GITHUB_MODELS_ENDPOINT: ''
+          EASY_OPERATOR_GITHUB_MODELS_MODEL: ''
+          EASY_OPERATOR_CODER_ATTEMPTS: '2'
+          EASY_OPERATOR_PROVIDER_RETRIES: '3'
+          EASY_OPERATOR_RATE_LIMIT_MAX_WAIT_MS: '30000'
+          EASY_OPERATOR_PROVIDER_TIMEOUT_MS: '60000'
           EASY_OPERATOR_WORKSPACE: ${{ github.workspace }}
         run: |
           set -euo pipefail
-          node .elite-code-tools/apps/easy-developer-platform/autonomous-coder.mjs 'Apply verified ARMY-14 soldier plan'
-          git diff --check
-          if [ -f package.json ] && node -e "const p=require('./package.json'); process.exit(p.scripts?.test ? 0 : 1)"; then npm test --if-present; fi
-          test -f /tmp/soldier-result.md
+          node .elite-code-tools/apps/easy-developer-platform/autonomous-coder.mjs "$(cat /tmp/soldier-goal.txt)\n\nROLE PROFILE:\n$(cat /tmp/soldier-profile.md)" | tee /tmp/soldier-run.json
+          node -e "const r=require('/tmp/soldier-run.json'); if(!['VERIFIED','VERIFIED_NOOP'].includes(r.status)) process.exit(1)"
       - name: Verify practical result
         if: always()
         run: |
           set -euo pipefail
           git diff --check
           if [ -f package.json ] && node -e "const p=require('./package.json'); process.exit(p.scripts?.test ? 0 : 1)"; then npm test --if-present; fi
-          if [ -f /tmp/soldier-result.md ]; then cp /tmp/soldier-result.md "soldier-result-${{ matrix.role }}.md"; else printf '# Missing soldier result\n' > "soldier-result-${{ matrix.role }}.md"; fi
+          if [ -f /tmp/soldier-run.json ]; then cp /tmp/soldier-run.json "soldier-result-${{ matrix.role }}.json"; else printf '{"status":"MISSING"}\n' > "soldier-result-${{ matrix.role }}.json"; fi
           git diff --stat > "diff-${{ matrix.role }}.txt" || true
           git status --short > "status-${{ matrix.role }}.txt" || true
-          test "${{ steps.planner.outcome }}" = success
-          test "${{ steps.apply.outcome }}" = success
+          test "${{ steps.soldier.outcome }}" = success
+          node -e "const fs=require('fs'); const p='soldier-result-${{ matrix.role }}.json'; const r=JSON.parse(fs.readFileSync(p,'utf8')); if(!['VERIFIED','VERIFIED_NOOP'].includes(r.status)) process.exit(1)"
       - name: Upload practical evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: army-14-${{ matrix.role }}-evidence
           path: |
-            soldier-result-${{ matrix.role }}.md
+            soldier-result-${{ matrix.role }}.json
             diff-${{ matrix.role }}.txt
             status-${{ matrix.role }}.txt
