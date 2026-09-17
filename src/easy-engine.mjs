@@ -16,7 +16,9 @@ function extractFacts(details) {
   const facts = [];
   for (const sentence of text.split(/[.!?\n]+/)) {
     const s = sentence.trim();
-    if (s && s.length <= 300 && !/^https?:\/\//i.test(s)) facts.push(s);
+    if (!s || s.length > 300 || /^https?:\/\//i.test(s)) continue;
+    if (/^(ignore|disregard|forget)\s+(all|any|the|previous|prior)|^(system|developer|assistant|user)\s*:/i.test(s)) continue;
+    facts.push(s);
   }
   return unique(facts);
 }
