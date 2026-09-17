@@ -33,6 +33,7 @@ jobs:
           - {role: Product-MVP, mission: Act as the ARMY-14 Product/MVP soldier. Inspect EASY and PROJECT-RULES.md first. Improve one real seller/customer MVP outcome in a usable, sellable path. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Research-Capability, mission: Act as the ARMY-14 Research/Capability soldier. Inspect EASY and PROJECT-RULES.md first. Discover one evidence-backed capability gap or reusable opportunity and implement a safe applicable improvement. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
 
+    # Sequential execution prevents concurrent supervisor commits from colliding.
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
     secrets: inherit
     with:
