@@ -40,7 +40,7 @@ jobs:
 
     # Provider-independent fallback is intentionally available: an exhausted external LLM
     # must not be misreported as a successful soldier, and the practical runner must pass.
-    # This rerun consumes the corrected provider-ladder detection in agent-skills/main.
+    # This rerun consumes the repaired deterministic runner in agent-skills/main.
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
     secrets: inherit
     with:
