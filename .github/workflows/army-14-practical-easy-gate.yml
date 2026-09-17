@@ -40,6 +40,7 @@ jobs:
 
     # Sequential execution prevents concurrent supervisor commits from colliding.
     # OIDC is used only for the authenticated Railway LLM plan bridge.
+    # The bridge and plan executor both fail closed; a successful workflow requires verified changes or a verified no-op.
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
     secrets: inherit
     with:
