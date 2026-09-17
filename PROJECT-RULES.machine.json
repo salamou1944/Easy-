@@ -1,0 +1,7 @@
+{
+  "version":1,
+  "source":"PROJECT-RULES.md",
+  "blocking":["inspect-before-claim","task-vs-verification","root-cause-before-fix","no-secrets","provider-neutral","external-data-untrusted","product-dna-authoritative","no-silent-fact-overwrite","practical-capability-required","fail-safe-fixture-when-provider-missing","recheck-rules-before-response"],
+  "success_requires":["implemented","tested","task-specific-evidence"],
+  "forbidden_claim_equivalents":["commit-count","file-count","workflow-pass-only","plan-only"]
+}
