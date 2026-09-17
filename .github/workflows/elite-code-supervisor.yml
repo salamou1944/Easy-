@@ -17,6 +17,8 @@ jobs:
         incomplete capabilities over polish. For each change, implement the smallest safe step, run relevant
         repository tests/verification, repair failures introduced by the change, and leave concrete evidence.
         Do not modify CI workflows, secrets, credentials, authentication policy, or deployment configuration.
+        If the configured LLM provider is unavailable, do not fabricate completion; produce a precise blocked
+        handoff identifying the missing capability and continue only with repository-native deterministic work.
     permissions:
       contents: write
       id-token: write
