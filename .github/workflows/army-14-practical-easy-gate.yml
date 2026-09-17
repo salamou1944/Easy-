@@ -38,9 +38,8 @@ jobs:
           - {role: Product-MVP, mission: Act as the ARMY-14 Product/MVP soldier. Inspect EASY and PROJECT-RULES.md first. Improve one real seller/customer MVP outcome in a usable, sellable path. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Research-Capability, mission: Act as the ARMY-14 Research/Capability soldier. Inspect EASY and PROJECT-RULES.md first. Discover one evidence-backed capability gap or reusable opportunity and implement a safe applicable improvement. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
 
-    # Provider-independent fallback is intentionally available: an exhausted external LLM
-    # must not be misreported as a successful soldier, and the practical runner must pass.
-    # This run consumes the latest slash/full-role-aware parser in agent-skills/main.
+    # Canonical ARMY-14 contracts are supplied by the pinned agent-skills checkout in the reusable supervisor.
+    # Provider-independent fallback must never report a soldier as successful without executing its contract gate.
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
     secrets: inherit
     with:
