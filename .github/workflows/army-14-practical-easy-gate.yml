@@ -1,0 +1,136 @@
+name: ARMY-14 practical EASY gate
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  models: read
+
+jobs:
+  practical:
+    name: ${{ matrix.role }} practical test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - role: Architect
+            profile: .github/agents/01-architect-soldier.agent.md
+            mission: Inspect EASY as a real product and produce a safe architecture improvement that removes one concrete blocker without violating PROJECT-RULES.md. Implement it if the repository supports it and verify it.
+          - role: Builder
+            profile: .github/agents/02-builder-soldier.agent.md
+            mission: Identify the smallest genuinely useful unfinished EASY capability and implement it end-to-end in the isolated test workspace, then run the strongest relevant verification available.
+          - role: UI-UX
+            profile: .github/agents/03-ui-ux-soldier.agent.md
+            mission: Inspect EASY seller-facing artifacts and implement one concrete usability/accessibility improvement that is supported by the current repository, then verify it without changing unrelated systems.
+          - role: Backend-API
+            profile: .github/agents/04-backend-api-soldier.agent.md
+            mission: Inspect EASY APIs/contracts and implement or harden one concrete backend capability or boundary that is currently incomplete, then run relevant tests.
+          - role: Database
+            profile: .github/agents/05-database-soldier.agent.md
+            mission: Inspect EASY data contracts and persistence-related artifacts; implement one safe data-integrity improvement only where the repository has a real applicable surface, then verify it.
+          - role: Security
+            profile: .github/agents/06-security-soldier.agent.md
+            mission: Perform a practical security pass over EASY, fix one concrete actionable issue if present, and verify the fix without introducing secrets or weakening policy.
+          - role: Integration
+            profile: .github/agents/07-integration-soldier.agent.md
+            mission: Exercise EASY provider boundaries and connectors using fixtures where live credentials are unavailable; fix one concrete integration defect if present and verify it.
+          - role: AI-Agent
+            profile: .github/agents/08-ai-agent-soldier.agent.md
+            mission: Inspect EASY's agent/operator automation surfaces and implement one concrete reliability or autonomy improvement that is applicable to the current repository, then verify it.
+          - role: Test-QA
+            profile: .github/agents/09-test-qa-soldier.agent.md
+            mission: Build or strengthen one practical regression test around an existing EASY capability or discovered defect; run it and verify the resulting test signal.
+          - role: Browser-E2E
+            profile: .github/agents/10-browser-e2e-soldier.agent.md
+            mission: Inspect EASY's browser/E2E surface. If no runnable UI exists in the current repository, prove that boundary and create only a safe executable smoke fixture/test where appropriate; otherwise run and repair one E2E path.
+          - role: Debug-Repair
+            profile: .github/agents/11-debug-repair-soldier.agent.md
+            mission: Find one real defect or inconsistency in EASY, determine root cause, repair it, and run verification. Do not manufacture a failure.
+          - role: Deployment-Ops
+            profile: .github/agents/12-deployment-ops-soldier.agent.md
+            mission: Inspect EASY deployment/runtime configuration without touching secrets; fix one concrete reliability/configuration defect if present and verify it locally or through repository-native checks.
+          - role: Product-MVP
+            profile: .github/agents/13-product-mvp-soldier.agent.md
+            mission: Evaluate EASY against a real seller/customer MVP outcome, then implement one concrete change that materially improves a usable/sellable path and verify it.
+          - role: Research-Capability
+            profile: .github/agents/14-research-capability-soldier.agent.md
+            mission: Discover one real capability gap or reusable opportunity in EASY using repository evidence, implement a safe applicable improvement if possible, and verify it. Separate facts from hypotheses.
+
+    steps:
+      - name: Checkout EASY
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Checkout ARMY-14 skills
+        uses: actions/checkout@v6
+        with:
+          repository: salamou1944/agent-skills
+          ref: main
+          path: .elite-code-tools
+          fetch-depth: 1
+
+      - name: Load soldier profile
+        run: |
+          test -f ".elite-code-tools/${{ matrix.profile }}"
+          cp ".elite-code-tools/${{ matrix.profile }}" /tmp/soldier-profile.md
+
+      - name: Run soldier against EASY
+        id: soldier
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EASY_OPERATOR_GITHUB_MODELS_ENDPOINT: https://models.github.ai/inference
+          EASY_OPERATOR_GITHUB_MODELS_MODEL: openai/gpt-4o-mini
+          EASY_OPERATOR_WORKSPACE: ${{ github.workspace }}
+          EASY_OPERATOR_CODER_ATTEMPTS: '2'
+        run: |
+          cat > /tmp/goal.txt <<'EOF'
+          You are the ARMY-14 ${{ matrix.role }} soldier operating at the Elite capability stage.
+          This is a PRACTICAL test against the real EASY repository, not a documentation exercise.
+          Read PROJECT-RULES.md first and obey it.
+          
+          Your role profile is supplied in /tmp/soldier-profile.md and is authoritative for your role.
+          
+          Practical mission:
+          ${{ matrix.mission }}
+          
+          Rules for this test:
+          - Inspect the actual repository before acting.
+          - Do not invent missing capabilities or pretend a planned change is implemented.
+          - Make only safe, repository-supported changes in this isolated workspace.
+          - Never add secrets, tokens, credentials, or private data.
+          - If no applicable implementation change exists, perform the strongest meaningful read/test/verification possible and document why.
+          - Run relevant tests or checks after the work.
+          - Finish with a concise evidence report at /tmp/soldier-result.md containing: role, files inspected, change made (or verified no-op), tests/checks run, failures found, root causes, and final result.
+          EOF
+          node .elite-code-tools/apps/easy-developer-platform/autonomous-coder.mjs "$(cat /tmp/goal.txt)"
+
+      - name: Verify practical result
+        if: always()
+        run: |
+          set -e
+          git diff --check
+          if [ -f package.json ]; then
+            node -e "const p=require('./package.json'); console.log('scripts:', Object.keys(p.scripts||{}).sort().join(', '))"
+            if node -e "const p=require('./package.json'); process.exit(p.scripts?.test ? 0 : 1)"; then npm test --if-present; fi
+          fi
+          if [ -f /tmp/soldier-result.md ]; then cp /tmp/soldier-result.md "soldier-result-${{ matrix.role }}.md"; else printf '%s\n' '# Missing soldier result' > "soldier-result-${{ matrix.role }}.md"; fi
+          git diff --stat > "diff-${{ matrix.role }}.txt" || true
+          git status --short > "status-${{ matrix.role }}.txt" || true
+          test "${{ steps.soldier.outcome }}" = success
+
+      - name: Upload practical evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: army-14-${{ matrix.role }}-evidence
+          path: |
+            soldier-result-${{ matrix.role }}.md
+            diff-${{ matrix.role }}.txt
+            status-${{ matrix.role }}.txt
