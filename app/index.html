@@ -4,12 +4,13 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EASY — Seller Creative MVP</title>
 <style>
-:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#17202a;background:#f5f7fa}body{margin:0}.wrap{max-width:760px;margin:auto;padding:24px}.card{background:white;border:1px solid #e2e7ee;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 5px 20px #00000008}h1{margin:0 0 6px}label{display:block;font-weight:700;margin:14px 0 7px}input,textarea,button{font:inherit;width:100%;box-sizing:border-box;border-radius:12px;padding:12px;border:1px solid #cbd5e1}textarea{min-height:120px;resize:vertical}button{margin-top:16px;background:#111827;color:white;border:0;font-weight:800;cursor:pointer}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2ff;margin:3px;font-size:13px}.ok{background:#ecfdf5;color:#065f46;padding:10px;border-radius:10px}.warn{background:#fff7ed;color:#9a3412;padding:10px;border-radius:10px}.muted{color:#64748b;font-size:14px}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#17202a;background:#f5f7fa}body{margin:0}.wrap{max-width:760px;margin:auto;padding:24px}.card{background:white;border:1px solid #e2e7ee;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 5px 20px #00000008}h1{margin:0 0 6px}label{display:block;font-weight:700;margin:14px 0 7px}input,textarea,button{font:inherit;width:100%;box-sizing:border-box;border-radius:12px;padding:12px;border:1px solid #cbd5e1}textarea{min-height:120px;resize:vertical}button{margin-top:16px;background:#111827;color:white;border:0;font-weight:800;cursor:pointer}.preview{max-width:100%;max-height:300px;border-radius:12px;margin-top:12px;display:none}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2ff;margin:3px;font-size:13px}.ok{background:#ecfdf5;color:#065f46;padding:10px;border-radius:10px}.warn{background:#fff7ed;color:#9a3412;padding:10px;border-radius:10px}.muted{color:#64748b;font-size:14px}
 </style>
 </head>
 <body><main class="wrap">
-<section class="card"><h1>EASY</h1><div class="muted">حوّل معلومات منتجك إلى Creative آمن، مع الحفاظ على حقائق المنتج.</div></section>
-<section class="card"><label for="name">اسم المنتج</label><input id="name" maxlength="200" placeholder="مثال: حقيبة جلدية">
+<section class="card"><h1>EASY</h1><div class="muted">حوّل معلومات منتجك إلى Creative آمن، مع الحفاظ على حقائق المنتج وصورة المنتج دون تعديل.</div></section>
+<section class="card"><label for="photo">صورة المنتج</label><input id="photo" type="file" accept="image/*"><img id="preview" class="preview" alt="معاينة المنتج">
+<label for="name">اسم المنتج</label><input id="name" maxlength="200" placeholder="مثال: حقيبة جلدية">
 <label for="details">تفاصيل المنتج التي تعرفها</label><textarea id="details" maxlength="8000" placeholder="اكتب المواد، المقاس، المزايا المؤكدة..."></textarea>
 <label for="audience">الجمهور (اختياري)</label><input id="audience" maxlength="200" placeholder="مثال: متسوقو الأزياء">
 <button id="generate">EASY Magic — إنشاء Creative</button></section>
@@ -17,8 +18,9 @@
 <section id="confirmed" class="card ok" hidden>تم التأكيد. الـ Creative أصبح جاهزًا للاستخدام.</section>
 <script type="module">
 import {generateCreative} from '../src/easy-engine.mjs';
-const $=id=>document.getElementById(id);
-$('generate').onclick=()=>{try{const r=generateCreative({product_name:$('name').value,product_details:$('details').value,audience:$('audience').value});$('result').hidden=false;$('headline').textContent=r.creative.headline;$('primary').textContent=r.creative.primaryText;$('points').innerHTML=r.creative.sellingPoints.map(x=>`<span class="pill">${escapeHtml(x)}</span>`).join('');$('cta').textContent=r.creative.cta;$('aud').textContent=r.creative.audience;$('integrity').innerHTML=r.integrity.passed?'<div class="ok">Product Integrity: PASS — لا توجد حقائق مفقودة.</div>':`<div class="warn">Product Integrity: REVIEW — ${escapeHtml(r.integrity.missingFacts.join('، '))}</div>`;$('confirmed').hidden=true;}catch(e){alert(e.message)}};
+const $=id=>document.getElementById(id); let imageUrl=null;
+$('photo').onchange=()=>{const file=$('photo').files?.[0];if(!file)return;if(!file.type.startsWith('image/')){alert('اختر صورة فقط');$('photo').value='';return}imageUrl=URL.createObjectURL(file);$('preview').src=imageUrl;$('preview').style.display='block'};
+$('generate').onclick=()=>{try{const r=generateCreative({product_name:$('name').value,product_details:$('details').value,image_url:imageUrl||undefined,audience:$('audience').value});$('result').hidden=false;$('headline').textContent=r.creative.headline;$('primary').textContent=r.creative.primaryText;$('points').innerHTML=r.creative.sellingPoints.map(x=>`<span class="pill">${escapeHtml(x)}</span>`).join('');$('cta').textContent=r.creative.cta;$('aud').textContent=r.creative.audience;$('integrity').innerHTML=r.integrity.passed?'<div class="ok">Product Integrity: PASS — لا توجد حقائق مفقودة.</div>':`<div class="warn">Product Integrity: REVIEW — ${escapeHtml(r.integrity.missingFacts.join('، '))}</div>`;$('confirmed').hidden=true;}catch(e){alert(e.message)}};
 $('confirm').onclick=()=>{$('confirmed').hidden=false};
 function escapeHtml(s){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 </script></main></body></html>
