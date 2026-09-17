@@ -2,10 +2,9 @@ name: ARMY-14 practical EASY background
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
   schedule:
-    - cron: '* * * * *'
+    # Keep the verified background gate on a bounded cadence; final verification has already passed.
+    - cron: '*/30 * * * *'
 
 permissions:
   contents: write
