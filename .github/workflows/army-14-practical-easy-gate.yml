@@ -3,7 +3,7 @@ name: ARMY-14 practical EASY background
 on:
   workflow_dispatch:
   schedule:
-    # Keep the verified background gate on a bounded cadence; final verification has already passed.
+    # Keep autonomous work bounded while allowing all independent soldiers to execute together.
     - cron: '*/30 * * * *'
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
       copilot-requests: write
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 14
       matrix:
         include:
           - {role: Architect, mission: Act as the ARMY-14 Architect soldier. Inspect EASY and PROJECT-RULES.md first. Make one safe, concrete architecture improvement that removes a real blocker. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
@@ -42,8 +42,50 @@ jobs:
           - {role: Deployment-Ops, mission: Act as the ARMY-14 Deployment/Ops soldier. Inspect EASY and PROJECT-RULES.md first. Improve one repository-supported runtime/deployment reliability issue without touching secrets or deployment policy. Run relevant verification.}
           - {role: Product-MVP, mission: Act as the ARMY-14 Product/MVP soldier. Inspect EASY and PROJECT-RULES.md first. Improve one real seller/customer MVP outcome in a usable, sellable path. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Research-Capability, mission: Act as the ARMY-14 Research/Capability soldier. Inspect EASY and PROJECT-RULES.md first. Discover one evidence-backed capability gap or reusable opportunity and implement a safe applicable improvement. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
-
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
     secrets: inherit
     with:
       goal: ${{ matrix.mission }}
+      role: ${{ matrix.role }}
+      persist_to_isolated_branch: true
+
+  integrate:
+    name: Integrate verified ARMY-14 changes
+    needs: practical
+    if: ${{ always() && needs.practical.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Merge isolated verified soldier branches
+        env:
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          mapfile -t branches < <(git ls-remote --heads origin "refs/heads/army/${RUN_ID}/"'*' | awk '{sub("refs/heads/", "", $2); print $2}' | sort)
+          echo "Verified worker branches: ${#branches[@]}"
+          for branch in "${branches[@]}"; do
+            echo "Merging $branch"
+            git fetch origin "$branch"
+            git merge --no-ff --no-edit "origin/$branch"
+          done
+
+      - name: Final integration verification
+        run: |
+          set -euo pipefail
+          git diff --check
+          if [ -f package.json ]; then
+            npm ci --ignore-scripts
+            npm test --if-present
+            npm run test:elite:provider-resilience --if-present
+          fi
+
+      - name: Persist integrated main
+        run: git push origin HEAD:main
