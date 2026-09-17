@@ -2,6 +2,8 @@ name: ARMY-14 practical EASY background
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
   schedule:
     # Provider-independent practical fallback is enabled; live LLM credits are not required for this gate.
     - cron: '*/30 * * * *'
@@ -31,7 +33,7 @@ jobs:
           - {role: Architect, mission: Act as the ARMY-14 Architect soldier. Inspect EASY and PROJECT-RULES.md first. Make one safe, concrete architecture improvement that removes a real blocker. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Builder, mission: Act as the ARMY-14 Builder soldier. Inspect EASY and PROJECT-RULES.md first. Implement the smallest genuinely useful unfinished EASY capability end-to-end. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: UI-UX, mission: Act as the ARMY-14 UI/UX soldier. Inspect EASY and PROJECT-RULES.md first. Implement one concrete seller-facing usability or accessibility improvement. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
-          - {role: Backend/API, mission: Act as the ARMY-14 Backend/API soldier. Inspect EASY and PROJECT-RULES.md first. Harden or implement one concrete incomplete API capability or boundary. Run relevant tests. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
+          - {role: Backend-API, mission: Act as the ARMY-14 Backend/API soldier. Inspect EASY and PROJECT-RULES.md first. Harden or implement one concrete incomplete API capability or boundary. Run relevant tests. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Database, mission: Act as the ARMY-14 Database soldier. Inspect EASY and PROJECT-RULES.md first. Implement one safe applicable data-integrity improvement. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Security, mission: Act as the ARMY-14 Security soldier. Inspect EASY and PROJECT-RULES.md first. Fix one concrete actionable security issue if present, otherwise perform the strongest meaningful security verification. Run relevant checks. Never add secrets or change auth policy.}
           - {role: Integration, mission: Act as the ARMY-14 Integration soldier. Inspect EASY and PROJECT-RULES.md first. Exercise provider boundaries using fixtures where credentials are unavailable and fix one concrete integration defect if present. Run relevant verification.}
