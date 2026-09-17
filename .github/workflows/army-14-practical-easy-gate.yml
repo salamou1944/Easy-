@@ -13,9 +13,10 @@ jobs:
   practical:
     name: ${{ matrix.role }} practical test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 8
     strategy:
       fail-fast: false
+      max-parallel: 4
       matrix:
         include:
           - role: Architect
@@ -110,7 +111,7 @@ jobs:
           - Do not commit or push changes.
           - Finish with a concise evidence report at /tmp/soldier-result.md containing: role, files inspected, change made (or verified no-op), tests/checks run, failures found, root causes, and final result.
           EOF
-          copilot -p "$(cat /tmp/goal.txt)\n\nROLE PROFILE:\n$(cat /tmp/soldier-profile.md)" -s --no-ask-user \
+          timeout 300s copilot -p "$(cat /tmp/goal.txt)\n\nROLE PROFILE:\n$(cat /tmp/soldier-profile.md)" -s --no-ask-user --model gpt-4.1 \
             --allow-tool='shell(git:*)' \
             --allow-tool='shell(find:*)' \
             --allow-tool='shell(ls:*)' \
