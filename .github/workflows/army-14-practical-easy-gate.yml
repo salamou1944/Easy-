@@ -1,18 +1,24 @@
-name: ARMY-14 practical EASY gate
+name: ARMY-14 practical EASY background
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+  schedule:
+    # Background cycle: run all 14 soldiers automatically, with one soldier at a time
+    # so they do not race over the same working tree.
+    - cron: '*/30 * * * *'
 
 permissions:
   contents: write
   models: read
   copilot-requests: write
 
+concurrency:
+  group: army-14-easy-background
+  cancel-in-progress: false
+
 jobs:
   practical:
-    name: ${{ matrix.role }} practical test
+    name: ${{ matrix.role }} background soldier
     permissions:
       contents: write
       id-token: write
@@ -38,8 +44,6 @@ jobs:
           - {role: Product-MVP, mission: Act as the ARMY-14 Product/MVP soldier. Inspect EASY and PROJECT-RULES.md first. Improve one real seller/customer MVP outcome in a usable, sellable path. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
           - {role: Research-Capability, mission: Act as the ARMY-14 Research/Capability soldier. Inspect EASY and PROJECT-RULES.md first. Discover one evidence-backed capability gap or reusable opportunity and implement a safe applicable improvement. Run relevant verification. Never change CI, secrets, credentials, auth policy, or deployment configuration.}
 
-    # Canonical ARMY-14 contracts are supplied by the pinned agent-skills checkout in the reusable supervisor.
-    # Provider-independent fallback must never report a soldier as successful without executing its contract gate.
     uses: salamou1944/agent-skills/.github/workflows/elite-code-reusable-supervisor.yml@main
     secrets: inherit
     with:
