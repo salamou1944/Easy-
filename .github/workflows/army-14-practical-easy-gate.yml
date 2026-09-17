@@ -5,8 +5,7 @@ on:
   push:
     branches: [main]
   schedule:
-    # Provider-independent practical fallback is enabled; live LLM credits are not required for this gate.
-    - cron: '*/30 * * * *'
+    - cron: '* * * * *'
 
 permissions:
   contents: write
