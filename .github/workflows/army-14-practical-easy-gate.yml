@@ -3,8 +3,8 @@ name: ARMY-14 practical EASY background
 on:
   workflow_dispatch:
   schedule:
-    # Keep autonomous work bounded while allowing all independent soldiers to execute together.
-    - cron: '*/30 * * * *'
+    # Autonomous bounded cadence: all independent soldiers run together; integration is serialized.
+    - cron: '*/10 * * * *'
 
 permissions:
   contents: write
