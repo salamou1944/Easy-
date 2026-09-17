@@ -5,6 +5,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  models: read
+  copilot-requests: write
+
 jobs:
   practical:
     name: ${{ matrix.role }} practical test
