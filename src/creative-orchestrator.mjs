@@ -7,6 +7,7 @@ import { buildProductDna, checkProductIntegrity, generateCreative } from './easy
  */
 export async function generateCreativeWithFallback(input, { provider = null } = {}) {
   const dna = buildProductDna(input);
+  let fallbackReason = provider ? 'provider_unavailable' : 'provider_not_configured';
 
   if (provider && typeof provider.generate === 'function') {
     try {
@@ -25,8 +26,9 @@ export async function generateCreativeWithFallback(input, { provider = null } = 
           };
         }
       }
-    } catch {
-      // Deliberately fail over to the deterministic path below.
+      fallbackReason = text ? 'provider_integrity_failed' : 'provider_empty_output';
+    } catch (error) {
+      fallbackReason = error?.name === 'AbortError' ? 'provider_timeout' : 'provider_error';
     }
   }
 
@@ -34,6 +36,7 @@ export async function generateCreativeWithFallback(input, { provider = null } = 
   return {
     version: 1,
     mode: 'deterministic-fallback',
+    fallbackReason,
     provider: fallback.provider,
     text: [fallback.creative.headline, fallback.creative.primaryText, ...fallback.creative.sellingPoints].join(' '),
     creative: fallback.creative,
