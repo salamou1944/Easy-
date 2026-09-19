@@ -29,12 +29,20 @@ export function buildProductDna(input) {
   const details = clean(input.product_details);
   if (!name && !details && !clean(input.image_url, 2000)) throw new Error("Provide product_name, product_details, or image_url");
   const suppliedFacts = extractFacts(details);
+  const imageProvided = Boolean(clean(input.image_url, 2000));
+  const unknowns = [];
+  if (!name || !suppliedFacts.length) unknowns.push("Some product facts are missing; verify before publishing.");
+  if (imageProvided) unknowns.push("Image evidence is present but not analyzed by this demo engine; verify visual attributes before publishing.");
   return {
     version: 1,
     title: name || "Unnamed product",
     suppliedFacts,
     authoritativeFacts: suppliedFacts,
-    unknowns: name && suppliedFacts.length ? [] : ["Some product facts are missing; verify before publishing."],
+    unknowns,
+    evidence: {
+      sellerText: suppliedFacts,
+      image: imageProvided ? "provided-not-analyzed" : "not-provided"
+    },
     source: "seller-supplied",
     integrity: {
       preservePrintedText: true,

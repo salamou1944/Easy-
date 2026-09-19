@@ -38,7 +38,7 @@ test('seller workflow accepts provider output only when Product Integrity passes
       async generate({ dna }) {
         return {
           provider: 'test-provider',
-          text: `${dna.name}. Cuir véritable. Fermeture métallique. Une proposition commerciale validée.`
+          text: `${dna.title}. Cuir véritable. Fermeture métallique. Une proposition commerciale validée.`
         };
       }
     }
