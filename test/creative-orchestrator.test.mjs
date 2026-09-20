@@ -23,6 +23,7 @@ test('creative orchestrator rejects provider output that loses authoritative fac
 
   assert.equal(result.mode, 'deterministic-fallback');
   assert.equal(result.fallbackReason, 'provider_integrity_failed');
+  assert.equal(result.providerStatus, 'BLOCKED');
   assert.equal(result.integrity.passed, true);
   assert.match(result.text, /جلد طبيعي/);
   assert.match(result.text, /مقاس متوسط/);
