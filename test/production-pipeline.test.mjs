@@ -57,3 +57,17 @@ test('production pipeline fails closed when provider output violates Product Int
   );
   assert.equal(saved, false);
 });
+
+
+test('production pipeline rejects non-http image URLs before provider execution', async () => {
+  let called = false;
+  const pipeline = createProductionPipeline({
+    creativeProvider: { async generate() { called = true; return { text: 'Product D. Waterproof.' }; } },
+    store: { async save() {} }
+  });
+  await assert.rejects(
+    () => pipeline({ product_name: 'Product D', product_details: 'Waterproof.', image_url: 'blob:demo-image' }),
+    /creative_provider_blocked:invalid_image_url_scheme/
+  );
+  assert.equal(called, false);
+});
