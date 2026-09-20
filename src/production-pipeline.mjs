@@ -18,7 +18,7 @@ export function createProductionPipeline({ creativeProvider = null, store }) {
     const record = {
       version: 2,
       requestId,
-      status: 'validated',
+      status: generated.providerStatus === 'BLOCKED' ? 'blocked' : 'validated',
       mode: generated.mode,
       dna,
       creative: generated,
