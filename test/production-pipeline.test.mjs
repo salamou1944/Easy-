@@ -71,3 +71,16 @@ test('production pipeline rejects non-http image URLs before provider execution'
   );
   assert.equal(called, false);
 });
+
+test('configured provider failure never reaches durable persistence', async () => {
+  const saved = [];
+  const pipeline = createProductionPipeline({
+    creativeProvider: { async generate() { throw new Error('provider_timeout'); } },
+    store: { async save(record) { saved.push(record); } }
+  });
+  await assert.rejects(
+    () => pipeline({ product_name: 'Product E', product_details: 'Durable facts.' }),
+    /creative_provider_blocked:provider_error/
+  );
+  assert.deepEqual(saved, []);
+});
