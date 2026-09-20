@@ -36,6 +36,7 @@ export async function generateCreativeWithFallback(input, { provider = null } = 
   return {
     version: 1,
     mode: 'deterministic-fallback',
+    providerStatus: provider ? 'BLOCKED' : 'NOT_CONFIGURED',
     fallbackReason,
     provider: fallback.provider,
     text: [fallback.creative.headline, fallback.creative.primaryText, ...fallback.creative.sellingPoints].join(' '),
