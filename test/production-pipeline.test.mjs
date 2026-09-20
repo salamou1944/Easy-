@@ -39,5 +39,8 @@ test('production pipeline falls back when provider throws', async () => {
   });
   const result = await pipeline({ product_name: 'Product B', product_details: 'Waterproof.' });
   assert.equal(result.mode, 'deterministic-fallback');
+  assert.equal(result.status, 'blocked');
+  assert.equal(result.providerStatus, 'BLOCKED');
   assert.equal(result.integrity.passed, true);
+  assert.throws(() => assertProductionRecord(result), /invalid_production_record/);
 });
