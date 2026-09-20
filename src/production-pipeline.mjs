@@ -2,11 +2,22 @@ import { randomUUID } from 'node:crypto';
 import { buildProductDna, checkProductIntegrity } from './easy-engine.mjs';
 import { generateCreativeWithFallback } from './creative-orchestrator.mjs';
 
+function validateProviderImageUrl(input, creativeProvider) {
+  if (!creativeProvider || !input?.image_url) return;
+  try {
+    const url = new URL(input.image_url);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('invalid_image_url_scheme');
+  } catch (error) {
+    throw new Error(`creative_provider_blocked:${error?.message === 'invalid_image_url_scheme' ? error.message : 'invalid_image_url'}`);
+  }
+}
+
 export function createProductionPipeline({ creativeProvider = null, store }) {
   if (!store || typeof store.save !== 'function') throw new Error('durable_store_required');
 
   return async function run(input) {
     const requestId = randomUUID();
+    validateProviderImageUrl(input, creativeProvider);
     const dna = buildProductDna(input);
     const generated = await generateCreativeWithFallback(input, { provider: creativeProvider });
     if (creativeProvider && generated.mode !== 'provider') {
