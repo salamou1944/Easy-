@@ -9,6 +9,9 @@ export function createProductionPipeline({ creativeProvider = null, store }) {
     const requestId = randomUUID();
     const dna = buildProductDna(input);
     const generated = await generateCreativeWithFallback(input, { provider: creativeProvider });
+    if (creativeProvider && generated.mode !== 'provider') {
+      throw new Error(`creative_provider_blocked:${generated.fallbackReason || 'provider_error'}`);
+    }
     const text = typeof generated?.text === 'string' ? generated.text.trim() : '';
     if (!text) throw new Error('creative_output_empty');
 
