@@ -16,7 +16,7 @@ const product = {
   selling_points: ['Cuir véritable', 'Fermeture métallique']
 };
 
-test('seller workflow produces a validated review-ready result without a provider', async () => {
+test('seller workflow produces a review-ready fallback without making it publishable', async () => {
   const store = memoryStore();
   const workflow = createSellerProductWorkflow({ store });
   const result = await workflow(product);
@@ -25,9 +25,11 @@ test('seller workflow produces a validated review-ready result without a provide
   assert.equal(result.nextAction, 'seller-review');
   assert.equal(result.integrity.passed, true);
   assert.equal(result.creative.mode, 'deterministic-fallback');
+  assert.equal(result.publishable, false);
   assert.match(result.requestId, /^[0-9a-f-]{36}$/);
   assert.equal(store.records.length, 1);
   assert.equal(store.records[0].status, 'validated');
+  assert.equal(store.records[0].publishable, false);
 });
 
 test('seller workflow accepts provider output only when Product Integrity passes', async () => {
@@ -48,6 +50,7 @@ test('seller workflow accepts provider output only when Product Integrity passes
   assert.equal(result.creative.mode, 'provider');
   assert.equal(result.provider, 'test-provider');
   assert.equal(result.integrity.passed, true);
+  assert.equal(result.publishable, true);
 });
 
 test('seller workflow rejects empty seller input before persistence', async () => {
