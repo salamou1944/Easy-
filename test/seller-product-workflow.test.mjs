@@ -69,8 +69,9 @@ test('seller workflow does not accept provider output that drops authoritative f
     }
   });
 
-  const result = await workflow(product);
-  assert.equal(result.creative.mode, 'deterministic-fallback');
-  assert.equal(result.integrity.passed, true);
-  assert.equal(result.provider, 'deterministic-safe-fixture');
+  await assert.rejects(
+    () => workflow(product),
+    /creative_provider_blocked:provider_integrity_failed/
+  );
+  assert.equal(store.records.length, 0);
 });
