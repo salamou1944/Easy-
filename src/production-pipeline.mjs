@@ -37,7 +37,8 @@ export function createProductionPipeline({ creativeProvider = null, store }) {
       dna,
       creative: generated,
       integrity,
-      provider: generated.provider || 'deterministic-safe-fixture'
+      provider: generated.provider || 'deterministic-safe-fixture',
+      publishable: generated.mode === 'provider'
     };
     await store.save(record);
     return record;
@@ -47,5 +48,7 @@ export function createProductionPipeline({ creativeProvider = null, store }) {
 export function assertProductionRecord(record) {
   if (!record?.requestId || record.status !== 'validated' || !record.integrity?.passed) throw new Error('invalid_production_record');
   if (!record.mode || !['provider', 'deterministic-fallback'].includes(record.mode)) throw new Error('invalid_production_mode');
+  if (record.publishable !== (record.mode === 'provider')) throw new Error('invalid_publishability_contract');
+  if (record.mode === 'deterministic-fallback') throw new Error('non_provider_creative_not_publishable');
   return true;
 }

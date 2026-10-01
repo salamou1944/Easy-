@@ -10,7 +10,8 @@ test('production pipeline supports deterministic fallback without a provider', a
   assert.equal(result.mode, 'deterministic-fallback');
   assert.equal(result.integrity.passed, true);
   assert.equal(saved.requestId, result.requestId);
-  assertProductionRecord(result);
+  assert.equal(result.publishable, false);
+  assert.throws(() => assertProductionRecord(result), /non_provider_creative_not_publishable/);
 });
 
 test('production pipeline requires durable store', () => {
