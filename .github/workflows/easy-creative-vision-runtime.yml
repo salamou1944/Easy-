@@ -43,12 +43,13 @@ jobs:
       - name: Create real image evidence fixtures
         run: |
           set -euo pipefail
-          cat > /tmp/reference.svg <<'SVG'
-          <svg xmlns="http://www.w3.org/2000/svg" width="640" height="640"><rect width="640" height="640" fill="#eeeeee"/><rect x="190" y="90" width="260" height="460" rx="45" fill="#d94b4b"/><rect x="255" y="45" width="130" height="65" rx="18" fill="#333333"/><rect x="230" y="230" width="180" height="120" rx="12" fill="#ffffff"/><text x="320" y="280" text-anchor="middle" font-family="Arial" font-size="34" font-weight="700">EASY</text><text x="320" y="320" text-anchor="middle" font-family="Arial" font-size="22">ALGERIA</text></svg>
-          SVG
-          cp /tmp/reference.svg /tmp/generated.svg
-          convert /tmp/reference.svg /tmp/reference.png
-          convert /tmp/generated.svg /tmp/generated.png
+          python - <<'PY'
+          import base64
+          from pathlib import Path
+          png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")
+          Path("/tmp/reference.png").write_bytes(png)
+          Path("/tmp/generated.png").write_bytes(png)
+          PY
       - name: Run EASY Qwen3-VL analyzer against real Ollama
         run: |
           set -euo pipefail
