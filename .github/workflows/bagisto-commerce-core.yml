@@ -1,0 +1,108 @@
+name: Bagisto commerce core smoke
+
+on:
+  push:
+    paths:
+      - "platform/commerce-core/**"
+      - ".github/workflows/bagisto-commerce-core.yml"
+  pull_request:
+    paths:
+      - "platform/commerce-core/**"
+      - ".github/workflows/bagisto-commerce-core.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bagisto-boot:
+    runs-on: ubuntu-latest
+    services:
+      database:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: bagisto
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout EASY integration contract
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned Bagisto
+        uses: actions/checkout@v4
+        with:
+          repository: bagisto/bagisto
+          ref: b40f998fa482dcbc99d24dccd4f45a263032100b
+          path: .integration/bagisto
+
+      - name: Verify pinned source
+        working-directory: .integration/bagisto
+        run: |
+          test "$(git rev-parse HEAD)" = "b40f998fa482dcbc99d24dccd4f45a263032100b"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: curl, fileinfo, gd, intl, mbstring, openssl, pdo, pdo_mysql, tokenizer, zip
+          tools: composer:v2
+
+      - name: Install Bagisto
+        working-directory: .integration/bagisto
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Configure Bagisto
+        working-directory: .integration/bagisto
+        run: |
+          cp .env.example .env
+          sed -i "s|^APP_ENV=.*|APP_ENV=testing|" .env
+          sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=mysql|" .env
+          sed -i "s|^DB_HOST=.*|DB_HOST=127.0.0.1|" .env
+          sed -i "s|^DB_PORT=.*|DB_PORT=3306|" .env
+          sed -i "s|^DB_DATABASE=.*|DB_DATABASE=bagisto|" .env
+          sed -i "s|^DB_USERNAME=.*|DB_USERNAME=root|" .env
+          sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=root|" .env
+          sed -i "s|^APP_URL=.*|APP_URL=http://127.0.0.1:8000|" .env
+
+      - name: Install database and seed core
+        working-directory: .integration/bagisto
+        run: php artisan bagisto:install --no-interaction
+
+      - name: Verify core routes
+        working-directory: .integration/bagisto
+        run: |
+          php artisan route:list --json > /tmp/bagisto-routes.json
+          php -r '
+            $routes = json_decode(file_get_contents("/tmp/bagisto-routes.json"), true);
+            $uris = array_column($routes, "uri");
+            foreach (["/", "admin/login", "customer/register", "checkout/cart"] as $required) {
+              if (!in_array($required, $uris, true)) {
+                fwrite(STDERR, "Missing required route: {$required}\n");
+                exit(1);
+              }
+            }
+          '
+
+      - name: Start Bagisto
+        working-directory: .integration/bagisto
+        run: |
+          nohup php artisan serve --host=127.0.0.1 --port=8000 >/tmp/bagisto.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null && exit 0
+            sleep 2
+          done
+          cat /tmp/bagisto.log
+          exit 1
+
+      - name: Verify storefront and admin
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8000/ >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:8000/admin/login >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:8000/customer/register >/dev/null
