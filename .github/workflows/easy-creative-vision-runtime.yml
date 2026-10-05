@@ -1,0 +1,79 @@
+name: EASY Creative Vision Runtime Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/creative-image-integrity.mjs"
+      - "test/creative-image-integrity.test.mjs"
+      - ".github/workflows/easy-creative-vision-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  qwen3-vl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      EASY_VISION_BASE_URL: http://127.0.0.1:11434
+      EASY_VISION_PROTOCOL: ollama
+      EASY_VISION_MODEL: qwen3-vl:2b
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ollama
+        run: |
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama --version
+      - name: Start Ollama
+        run: |
+          set -euo pipefail
+          nohup ollama serve >/tmp/ollama.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 2
+          done
+          cat /tmp/ollama.log
+          exit 1
+      - name: Pull Qwen3-VL vision model
+        run: |
+          set -euo pipefail
+          ollama pull "$EASY_VISION_MODEL"
+      - name: Create real image evidence fixtures
+        run: |
+          set -euo pipefail
+          cat > /tmp/reference.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" width="640" height="640"><rect width="640" height="640" fill="#eeeeee"/><rect x="190" y="90" width="260" height="460" rx="45" fill="#d94b4b"/><rect x="255" y="45" width="130" height="65" rx="18" fill="#333333"/><rect x="230" y="230" width="180" height="120" rx="12" fill="#ffffff"/><text x="320" y="280" text-anchor="middle" font-family="Arial" font-size="34" font-weight="700">EASY</text><text x="320" y="320" text-anchor="middle" font-family="Arial" font-size="22">ALGERIA</text></svg>
+          SVG
+          cp /tmp/reference.svg /tmp/generated.svg
+          convert /tmp/reference.svg /tmp/reference.png
+          convert /tmp/generated.svg /tmp/generated.png
+      - name: Run EASY Qwen3-VL analyzer against real Ollama
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          import assert from "node:assert/strict";
+          import {createQwenVisionIntegrityVerifier, verifyCreativeImageIntegrity} from "./src/creative-image-integrity.mjs";
+          const dataUrl = (file) => "data:image/png;base64," + fs.readFileSync(file).toString("base64");
+          const reference = dataUrl("/tmp/reference.png");
+          const generated = dataUrl("/tmp/generated.png");
+          const verifier = createQwenVisionIntegrityVerifier({baseUrl: process.env.EASY_VISION_BASE_URL, protocol: process.env.EASY_VISION_PROTOCOL, model: process.env.EASY_VISION_MODEL});
+          const evidence = await verifier.verify({input: {sourceImageUrl: reference}, artifact: {type: "image", url: generated}, dna: {title: "EASY red bottle", authoritativeFacts: ["red body", "EASY logo", "ALGERIA printed text"]}});
+          const gate = verifyCreativeImageIntegrity({dna: {title: "EASY red bottle"}, artifact: {url: generated}, verification: evidence});
+          console.log(JSON.stringify({evidence, gate}, null, 2));
+          assert.equal(evidence.analyzer, "qwen3-vl-ollama");
+          assert.equal(gate.publishable, true);
+          for (const key of ["color","logo","printedText","brandName","shape","majorComponents","distinctiveDetails"]) assert.equal(evidence[key], true, "Qwen3-VL did not positively verify " + key);
+          NODE
+      - name: Upload runtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-qwen3-vl-runtime-${{ github.run_id }}
+          path: |
+            /tmp/reference.png
+            /tmp/generated.png
+            /tmp/ollama.log
+          if-no-files-found: warn
