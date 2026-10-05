@@ -1,0 +1,126 @@
+name: EASY Creative ComfyUI Runtime Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/providers/comfyui-image.mjs"
+      - ".github/workflows/easy-creative-comfyui-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  comfyui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      COMFY_HOST: http://127.0.0.1:8188
+      CHECKPOINT_URL: https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors
+      CHECKPOINT_NAME: v1-5-pruned-emaonly.safetensors
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ComfyUI
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/comfy-venv
+          source /tmp/comfy-venv/bin/activate
+          python -m pip install --upgrade pip
+          git clone --depth 1 https://github.com/Comfy-Org/ComfyUI.git /tmp/ComfyUI
+          cd /tmp/ComfyUI
+          pip install -r requirements.txt
+          mkdir -p models/checkpoints input output
+      - name: Download SD 1.5 checkpoint
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 "$CHECKPOINT_URL" -o "/tmp/ComfyUI/models/checkpoints/$CHECKPOINT_NAME"
+          test -s "/tmp/ComfyUI/models/checkpoints/$CHECKPOINT_NAME"
+      - name: Start ComfyUI CPU runtime
+        run: |
+          set -euo pipefail
+          source /tmp/comfy-venv/bin/activate
+          cd /tmp/ComfyUI
+          nohup python main.py --cpu --listen 127.0.0.1 --port 8188 >/tmp/comfyui.log 2>&1 &
+          for i in $(seq 1 120); do
+            curl --fail --silent "$COMFY_HOST/system_stats" >/dev/null && exit 0
+            sleep 2
+          done
+          cat /tmp/comfyui.log
+          exit 1
+      - name: Create real reference image
+        run: |
+          set -euo pipefail
+          source /tmp/comfy-venv/bin/activate
+          pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image, ImageDraw, ImageFont
+          im=Image.new("RGB",(512,512),(238,238,238))
+          d=ImageDraw.Draw(im)
+          d.rounded_rectangle((150,80,362,445),radius=35,fill=(210,55,55))
+          d.rounded_rectangle((205,40,307,95),radius=15,fill=(45,45,45))
+          d.rounded_rectangle((178,205,334,315),radius=10,fill=(255,255,255))
+          font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",34)
+          small=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",20)
+          d.text((256,245),"EASY",fill=(20,20,20),anchor="mm",font=font)
+          d.text((256,282),"ALGERIA",fill=(20,20,20),anchor="mm",font=small)
+          im.save("/tmp/reference.png")
+          PY
+          curl --fail -X POST "$COMFY_HOST/upload/image" -F image=@/tmp/reference.png
+      - name: Queue real ComfyUI img2img job
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, urllib.request, urllib.parse, time, os
+          host=os.environ["COMFY_HOST"]
+          checkpoint=os.environ["CHECKPOINT_NAME"]
+          workflow={
+            "1":{"class_type":"CheckpointLoaderSimple","inputs":{"ckpt_name":checkpoint}},
+            "2":{"class_type":"LoadImage","inputs":{"image":"reference.png","upload":"image"}},
+            "3":{"class_type":"CLIPTextEncode","inputs":{"clip":["1",1],"text":"professional ecommerce product photo, clean studio lighting, realistic product photography, preserve the exact product identity"}},
+            "4":{"class_type":"CLIPTextEncode","inputs":{"clip":["1",1],"text":"deformed product, altered logo, altered text, changed color, distorted shape"}},
+            "5":{"class_type":"VAEEncode","inputs":{"pixels":["2",0],"vae":["1",2]}},
+            "6":{"class_type":"KSampler","inputs":{"seed":12345,"steps":5,"cfg":5,"sampler_name":"euler","scheduler":"normal","denoise":0.25,"model":["1",0],"positive":["3",0],"negative":["4",0],"latent_image":["5",0]}},
+            "7":{"class_type":"VAEDecode","inputs":{"samples":["6",0],"vae":["1",2]}},
+            "8":{"class_type":"SaveImage","inputs":{"filename_prefix":"easy-real-comfyui","images":["7",0]}}
+          }
+          body=json.dumps({"prompt":workflow}).encode()
+          req=urllib.request.Request(host+"/prompt",data=body,headers={"Content-Type":"application/json"})
+          with urllib.request.urlopen(req,timeout=30) as r: payload=json.load(r)
+          prompt_id=payload["prompt_id"]
+          print("prompt_id="+prompt_id)
+          deadline=time.time()+1800
+          while time.time()<deadline:
+            with urllib.request.urlopen(host+"/history/"+prompt_id,timeout=30) as r: h=json.load(r)
+            entry=h.get(prompt_id)
+            if entry and entry.get("status",{}).get("status_str")=="error": raise SystemExit("ComfyUI generation failed")
+            for out in (entry or {}).get("outputs",{}).values():
+              for img in out.get("images",[]):
+                if img.get("filename"):
+                  url=host+"/view?filename="+urllib.parse.quote(img["filename"])+"&subfolder="+urllib.parse.quote(img.get("subfolder",""))+"&type="+urllib.parse.quote(img.get("type","output"))
+                  urllib.request.urlretrieve(url,"/tmp/generated.png")
+                  print("artifact="+url)
+                  raise SystemExit(0)
+            time.sleep(5)
+          raise SystemExit("ComfyUI generation timeout")
+          PY
+      - name: Verify real ComfyUI artifact
+        run: |
+          set -euo pipefail
+          test -s /tmp/generated.png
+          file /tmp/generated.png
+          python - <<'PY'
+          from PIL import Image
+          im=Image.open("/tmp/generated.png")
+          print("generated_size=", im.size)
+          assert im.width > 1 and im.height > 1
+          PY
+      - name: Upload runtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-comfyui-runtime-${{ github.run_id }}
+          path: |
+            /tmp/reference.png
+            /tmp/generated.png
+            /tmp/comfyui.log
+          if-no-files-found: warn
