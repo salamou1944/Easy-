@@ -45,3 +45,21 @@ They have publicly visible support/order workflows rather than being generic AI 
 
 ## Next state to record
 Found opportunity → targeted outreach → client reply → call → proposal → invoice/payment → pilot.
+
+
+### 4. Atlas Technology — Algeria (Oran)
+- Public signal: Atlas CRM explicitly connects WhatsApp conversations, order confirmation, dispatch, delivery tracking, exceptions and COD reconciliation; Atlas also publishes a controlled pilot approach for real workflows.
+- Contact: contact@atlas-technology-dz.com
+- Phone: +213 541 89 83 81
+- Fit: HIGH as a potential pilot/technology partner — the existing Atlas CRM workflow can provide the real operational context while EASY supplies an evidence-gated resolution layer.
+- Evidence: https://atlas-technology-dz.com/solutions/atlas-crm and https://atlas-technology-dz.com/contact
+- Proposed pilot: one narrow support/exception workflow, 7–14 days, human-reviewed drafts.
+- Initial commercial anchor: $1,000 pilot, 50% upfront.
+- Positioning: integration/augmentation of an existing operational system, not replacement.
+
+### 5. Facile — Algeria
+- Public signal: Facile explicitly targets Algerian merchants handling spreadsheets, WhatsApp orders and delivery apps, and advertises an Instagram/Messenger AI agent plus order/shipping workflows.
+- Contact path: official site sales/enterprise contact.
+- Fit: HIGH operational fit, but lower priority until a direct sales contact is identified.
+- Evidence: https://facile-dz.com/
+- Action: keep as a qualified prospect; do not send until a verified direct contact is available.
