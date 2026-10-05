@@ -152,3 +152,35 @@ test('Qwen verifier fails closed on malformed model evidence', async () => {
     /vision_invalid_json/
   );
 });
+
+test('Qwen3-VL analyzer supports native Ollama API with image payloads', async () => {
+  let request;
+  const analyzer = createQwenVisionIntegrityAnalyzer({
+    baseUrl: 'http://ollama.local',
+    protocol: 'ollama',
+    model: 'qwen3-vl:4b',
+    fetchImpl: async (url, options) => {
+      request = { url, options };
+      return new Response(JSON.stringify({
+        message: { content: JSON.stringify({
+          color:true, logo:true, printedText:true, brandName:true,
+          shape:true, majorComponents:true, distinctiveDetails:true,
+          confidence:0.97
+        }) }
+      }), { status: 200 });
+    }
+  });
+  const dataUrl = 'data:image/png;base64,AAAA';
+  const result = await analyzer.analyze({
+    input: { sourceImageUrl: dataUrl },
+    artifact: { viewUrl: dataUrl },
+    dna: {}
+  });
+  assert.equal(request.url, 'http://ollama.local/api/chat');
+  const body = JSON.parse(request.options.body);
+  assert.equal(body.model, 'qwen3-vl:4b');
+  assert.equal(body.stream, false);
+  assert.equal(body.format, 'json');
+  assert.equal(body.messages[0].images.length, 2);
+  assert.equal(result.logo, true);
+});
