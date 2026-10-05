@@ -1,7 +1,11 @@
 export function createComfyUIImageProvider({
   baseUrl = process.env.EASY_COMFYUI_BASE_URL,
   workflowFactory,
-  fetchImpl = globalThis.fetch
+  fetchImpl = globalThis.fetch,
+  waitForResult = false,
+  pollIntervalMs = Number(process.env.EASY_COMFYUI_POLL_INTERVAL_MS || 1000),
+  timeoutMs = Number(process.env.EASY_COMFYUI_TIMEOUT_MS || 120000),
+  sleepImpl = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 } = {}) {
   if (!baseUrl) throw new Error('comfyui_base_url_required');
   if (typeof workflowFactory !== 'function') throw new Error('comfyui_workflow_factory_required');
@@ -24,7 +28,32 @@ export function createComfyUIImageProvider({
       if (!response.ok) throw new Error('comfyui_request_failed:' + response.status);
       if (!payload?.prompt_id) throw new Error('comfyui_missing_prompt_id');
 
-      return { provider: 'comfyui', promptId: payload.prompt_id, status: 'submitted' };
+      if (!waitForResult) {
+        return { provider: 'comfyui', promptId: payload.prompt_id, status: 'submitted' };
+      }
+
+      const started = Date.now();
+      while (Date.now() - started <= timeoutMs) {
+        const historyResponse = await fetchImpl(root + '/history/' + encodeURIComponent(payload.prompt_id), {
+          method: 'GET',
+          headers: { Accept: 'application/json' }
+        });
+        let history = null;
+        try { history = await historyResponse.json(); } catch {}
+        if (!historyResponse.ok) throw new Error('comfyui_history_failed:' + historyResponse.status);
+
+        const entry = history?.[payload.prompt_id];
+        if (entry?.status?.status_str === 'error') throw new Error('comfyui_generation_failed');
+        if (entry?.outputs && typeof entry.outputs === 'object') {
+          const artifact = extractComfyUIArtifact(entry.outputs);
+          if (artifact) {
+            return { provider: 'comfyui', promptId: payload.prompt_id, status: 'completed', artifact };
+          }
+        }
+        await sleepImpl(Math.max(0, pollIntervalMs));
+      }
+      throw new Error('comfyui_generation_timeout');
     }
   };
 }
+\nfunction extractComfyUIArtifact(outputs) {\n  for (const output of Object.values(outputs || {})) {\n    for (const image of output?.images || []) {\n      if (image?.filename) {\n        return {\n          type: 'image',\n          filename: image.filename,\n          subfolder: image.subfolder || '',\n          typeHint: image.type || 'output'\n        };\n      }\n    }\n  }\n  return null;\n}\n
