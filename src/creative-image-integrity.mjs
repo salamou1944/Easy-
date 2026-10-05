@@ -119,3 +119,11 @@ export function createQwenVisionIntegrityAnalyzer({
     }
   };
 }
+
+
+export function createQwenVisionIntegrityVerifier(options = {}) {
+  const analyzer = createQwenVisionIntegrityAnalyzer(options);
+  return createVisualIntegrityVerifier({
+    analyze: (args) => analyzer.analyze(args)
+  });
+}
