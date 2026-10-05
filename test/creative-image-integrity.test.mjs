@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assertCreativeImagePublishable, verifyCreativeImageIntegrity } from '../src/creative-image-integrity.mjs';
+import { assertCreativeImagePublishable, verifyCreativeImageIntegrity, createVisualIntegrityVerifier, createQwenVisionIntegrityAnalyzer, createQwenVisionIntegrityVerifier } from '../src/creative-image-integrity.mjs';
 
 test('blocks image without visual verification', () => {
   const result = verifyCreativeImageIntegrity({
