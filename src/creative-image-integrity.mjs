@@ -5,7 +5,7 @@ const REQUIRED_PRESERVATIONS = [
 
 export function verifyCreativeImageIntegrity({ dna, artifact, verification } = {}) {
   if (!dna || typeof dna !== 'object') throw new Error('creative_dna_required');
-  if (!artifact?.url && !artifact?.bytes) return blocked('missing_image_artifact');
+  if (!artifact?.url && !artifact?.viewUrl && !artifact?.bytes) return blocked('missing_image_artifact');
   if (!verification || typeof verification !== 'object') return blocked('missing_visual_verification');
 
   const missing = REQUIRED_PRESERVATIONS.filter((key) => verification[key] !== true);
@@ -74,7 +74,7 @@ export function createQwenVisionIntegrityAnalyzer({
   if (!baseUrl) throw new Error('vision_base_url_required');
   if (typeof fetchImpl !== 'function') throw new Error('fetch_unavailable');
 
-  const root = String(baseUrl).replace(/\\/$/, '');
+  const root = String(baseUrl).replace(/\/$/, '');
   return {
     async analyze({ input, artifact, dna } = {}) {
       const referenceImage = input?.sourceImageUrl || input?.image_url || input?.imageUrl;
