@@ -134,3 +134,21 @@ test('Qwen vision failure remains fail-closed', async () => {
     /vision_request_failed:503/
   );
 });
+
+
+test('Qwen verifier fails closed on malformed model evidence', async () => {
+  const verifier = createQwenVisionIntegrityVerifier({
+    baseUrl: 'http://vision.local',
+    fetchImpl: async () => new Response(JSON.stringify({
+      choices: [{ message: { content: 'not-json' } }]
+    }), { status: 200 })
+  });
+  await assert.rejects(
+    verifier.verify({
+      input: { image_url: 'https://example.com/reference.jpg' },
+      artifact: { viewUrl: 'https://comfy.local/view?filename=product.png' },
+      dna: {}
+    }),
+    /vision_response_invalid/
+  );
+});
