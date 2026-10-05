@@ -108,6 +108,7 @@ jobs:
           set -euo pipefail
           test -s /tmp/generated.png
           file /tmp/generated.png
+          source /tmp/comfy-venv/bin/activate
           python - <<'PY'
           from PIL import Image
           im=Image.open("/tmp/generated.png")
