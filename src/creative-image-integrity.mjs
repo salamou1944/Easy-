@@ -69,7 +69,7 @@ export function createQwenVisionIntegrityAnalyzer({
   baseUrl = process.env.EASY_VISION_BASE_URL,
   apiKey = process.env.EASY_VISION_API_KEY,
   model = process.env.EASY_VISION_MODEL || 'qwen3-vl:4b',
-  protocol = process.env.EASY_VISION_PROTOCOL || 'ollama',
+  protocol = process.env.EASY_VISION_PROTOCOL || 'openai',
   fetchImpl = globalThis.fetch
 } = {}) {
   if (!baseUrl) throw new Error('vision_base_url_required');
