@@ -35,3 +35,31 @@ export function assertCreativeImagePublishable(result) {
   }
   return true;
 }
+
+
+export function createVisualIntegrityVerifier({ analyze, requiredPreservations = REQUIRED_PRESERVATIONS } = {}) {
+  if (typeof analyze !== 'function') throw new Error('visual_integrity_analyzer_required');
+  return {
+    async verify({ input, artifact, dna } = {}) {
+      if (!artifact?.url && !artifact?.viewUrl && !artifact?.bytes) {
+        throw new Error('visual_integrity_artifact_required');
+      }
+      const evidence = await analyze({ input, artifact, dna });
+      if (!evidence || typeof evidence !== 'object') {
+        throw new Error('visual_integrity_evidence_required');
+      }
+      const verification = {};
+      for (const key of requiredPreservations) {
+        verification[key] = evidence[key] === true;
+      }
+      return {
+        ...verification,
+        evidenceVersion: evidence.evidenceVersion || 1,
+        analyzer: evidence.analyzer || 'external-visual-analyzer',
+        referenceArtifact: evidence.referenceArtifact || null,
+        generatedArtifact: evidence.generatedArtifact || artifact,
+        confidence: typeof evidence.confidence === 'number' ? evidence.confidence : null
+      };
+    }
+  };
+}
