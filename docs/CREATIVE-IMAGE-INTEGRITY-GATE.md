@@ -33,4 +33,4 @@ The ComfyUI adapter can optionally wait for `/history/{prompt_id}` and extract t
 
 ## Next production gate
 
-Connect a real vision/image analyzer to `createVisualIntegrityVerifier`, then run a real product image through the full gate. The adapter deliberately refuses to manufacture evidence: analyzer output must explicitly prove each required preservation flag. No production claim until that evidence exists.
+Connect the OpenAI-compatible `createQwenVisionIntegrityAnalyzer` to `createVisualIntegrityVerifier`, using a local Qwen2.5-VL/Ollama-compatible endpoint where available, then run a real product image through the full gate. The adapter deliberately refuses to manufacture evidence: analyzer output must explicitly prove each required preservation flag. No production claim until that evidence exists.
