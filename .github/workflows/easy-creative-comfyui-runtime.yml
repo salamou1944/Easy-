@@ -116,6 +116,59 @@ jobs:
           print("generated_size=", im.size)
           assert im.width > 1 and im.height > 1
           PY
+      - name: Install Ollama vision runtime
+        run: |
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve >/tmp/ollama.log 2>&1 &
+          for i in $(seq 1 120); do
+            curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null && exit 0
+            sleep 2
+          done
+          cat /tmp/ollama.log
+          exit 1
+      - name: Pull Qwen3-VL vision model
+        run: |
+          set -euo pipefail
+          ollama pull qwen3-vl:2b
+      - name: Run real Qwen3-VL integrity verification
+        env:
+          EASY_VISION_BASE_URL: http://127.0.0.1:11434
+          EASY_VISION_PROTOCOL: ollama
+          EASY_VISION_MODEL: qwen3-vl:2b
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import fs from 'node:fs/promises';
+          import { createQwenVisionIntegrityVerifier, verifyCreativeImageIntegrity } from './src/creative-image-integrity.mjs';
+
+          const dataUrl = async (path) => {
+            const bytes = await fs.readFile(path);
+            return 'data:image/png;base64,' + bytes.toString('base64');
+          };
+
+          const reference = await dataUrl('/tmp/reference.png');
+          const generated = await dataUrl('/tmp/generated.png');
+          const dna = {
+            integrityRequirements: {
+              preservePrintedText: true,
+              preserveLogo: true,
+              preserveColor: true,
+              preserveShape: true,
+              preserveEssentialCharacteristics: true
+            }
+          };
+
+          const verifier = createQwenVisionIntegrityVerifier();
+          const verification = await verifier.verify({
+            input: { sourceImageUrl: reference },
+            artifact: { type: 'image', url: generated },
+            dna
+          });
+          const integrity = verifyCreativeImageIntegrity({ dna, artifact: generated, verification });
+          console.log(JSON.stringify({ verification, integrity }, null, 2));
+          if (!integrity.publishable) throw new Error('qwen3_vl_integrity_gate_blocked');
+          JS
       - name: Upload runtime diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -125,4 +178,5 @@ jobs:
             /tmp/reference.png
             /tmp/generated.png
             /tmp/comfyui.log
+            /tmp/ollama.log
           if-no-files-found: warn
