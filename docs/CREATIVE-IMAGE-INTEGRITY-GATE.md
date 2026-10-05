@@ -39,3 +39,8 @@ Connect the OpenAI-compatible `createQwenVisionIntegrityAnalyzer` to `createVisu
 ## Runtime wiring
 
 Use `createQwenVisionIntegrityVerifier({ baseUrl, apiKey, model })` as the verifier passed to `runCreativeImageGate`. Keep the endpoint OpenAI-compatible and prefer a local/self-hosted vision runtime first. If the endpoint is unavailable, the gate must remain BLOCKED.
+
+
+## CI evidence boundary
+
+The CI contract tests the adapter, evidence normalization, malformed-response rejection, and fail-closed behavior. CI must not label a mocked vision response as production visual verification. Production status requires a reachable ComfyUI generation runtime, a reachable vision runtime, and real reference/generated image artifacts.
