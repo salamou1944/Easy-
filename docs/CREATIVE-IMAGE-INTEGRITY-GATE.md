@@ -1,6 +1,6 @@
 # EASY Creative Image Integrity Gate
 
-Status: provider job/artifact retrieval implemented; visual verification remains the production gate.
+Status: provider job/artifact retrieval implemented; provider-neutral visual verification adapter implemented; a real vision analyzer remains the production gate.
 
 The Creative Engine must treat image generation as a gated operation, not a successful HTTP request.
 
@@ -33,4 +33,4 @@ The ComfyUI adapter can optionally wait for `/history/{prompt_id}` and extract t
 
 ## Next production gate
 
-Implement a real visual verification adapter, then run a real product image through the full gate. No production claim until that evidence exists.
+Connect a real vision/image analyzer to `createVisualIntegrityVerifier`, then run a real product image through the full gate. The adapter deliberately refuses to manufacture evidence: analyzer output must explicitly prove each required preservation flag. No production claim until that evidence exists.
