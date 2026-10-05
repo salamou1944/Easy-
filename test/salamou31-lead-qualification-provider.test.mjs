@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {createSalamou31LeadQualificationProvider} from '../src/providers/salamou31-lead-qualification.mjs';
+
+test('calls Salamou-31 lead qualification API and returns structured qualification',async()=>{let seen;const provider=createSalamou31LeadQualificationProvider({baseUrl:'https://api.example.test/',apiKey:'secret',fetchImpl:async(url,options)=>{seen={url,options};return new Response(JSON.stringify({lead:{message:'Need CRM automation'},qualification:{score:91,priority:'high',intent:'purchase',summary:'Strong buying intent',reasons:['Urgent automation need'],next_action:'Book a discovery call'}}),{status:200,headers:{'content-type':'application/json'}})}});const result=await provider.qualify({email:'buyer@example.com',message:'Need CRM automation'});assert.equal(seen.url,'https://api.example.test/v1/leads/qualify');assert.equal(seen.options.headers['X-API-Key'],'secret');assert.match(seen.options.headers['Idempotency-Key'],/^easy-lead-qualification-/);assert.equal(result.qualification.score,91);assert.equal(result.provider,'salamou31-lead-qualification-api')});
+
+test('fails closed on authentication failure',async()=>{const provider=createSalamou31LeadQualificationProvider({baseUrl:'https://api.example.test',apiKey:'secret',fetchImpl:async()=>new Response('{}',{status:401})});await assert.rejects(()=>provider.qualify({message:'x'}),/lead_qualification_authentication_failed/)});
