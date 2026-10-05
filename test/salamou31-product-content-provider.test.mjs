@@ -32,8 +32,7 @@ test('maps EASY Product DNA to Salamou-31 product-content contract', async () =>
   assert.deepEqual(JSON.parse(request.options.body), {
     product_name: 'Sac',
     product_details: 'Cuir véritable. Fermeture métallique',
-    language: 'English',
-    image_url: undefined
+    language: 'English'
   });
   assert.equal(result.provider, 'salamou31-ai-product-content-api');
   assert.match(result.text, /Sac en cuir/);
