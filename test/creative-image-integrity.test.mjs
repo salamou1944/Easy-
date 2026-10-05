@@ -37,3 +37,29 @@ test('accepts only explicit positive evidence for every preservation rule', () =
   assert.equal(result.publishable, true);
   assert.equal(assertCreativeImagePublishable(result), true);
 });
+
+
+test('visual verifier adapter fails closed without a real analyzer', async () => {
+  assert.throws(() => createVisualIntegrityVerifier(), /visual_integrity_analyzer_required/);
+});
+
+test('visual verifier adapter normalizes explicit analyzer evidence', async () => {
+  const verifier = createVisualIntegrityVerifier({
+    analyze: async () => ({
+      evidenceVersion: 2,
+      analyzer: 'vision-test',
+      confidence: 0.98,
+      color: true,
+      logo: true,
+      printedText: true,
+      brandName: true,
+      shape: true,
+      majorComponents: true,
+      distinctiveDetails: true
+    })
+  });
+  const result = await verifier.verify({ artifact: { url: 'https://example.test/image.png' } });
+  assert.equal(result.analyzer, 'vision-test');
+  assert.equal(result.confidence, 0.98);
+  assert.equal(result.distinctiveDetails, true);
+});
