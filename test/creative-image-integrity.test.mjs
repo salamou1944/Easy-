@@ -149,6 +149,6 @@ test('Qwen verifier fails closed on malformed model evidence', async () => {
       artifact: { viewUrl: 'https://comfy.local/view?filename=product.png' },
       dna: {}
     }),
-    /vision_response_invalid/
+    /vision_invalid_json/
   );
 });
