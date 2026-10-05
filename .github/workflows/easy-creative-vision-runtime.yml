@@ -43,12 +43,25 @@ jobs:
       - name: Create real image evidence fixtures
         run: |
           set -euo pipefail
+          python -m pip install --quiet pillow
           python - <<'PY'
-          import base64
+          from PIL import Image, ImageDraw, ImageFont
           from pathlib import Path
-          png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=")
-          Path("/tmp/reference.png").write_bytes(png)
-          Path("/tmp/generated.png").write_bytes(png)
+          size=(640,640)
+          for out in ("/tmp/reference.png","/tmp/generated.png"):
+              im=Image.new("RGB",size,(238,238,238))
+              d=ImageDraw.Draw(im)
+              d.rounded_rectangle((190,90,450,550),radius=45,fill=(210,55,55))
+              d.rounded_rectangle((255,45,385,110),radius=18,fill=(45,45,45))
+              d.rounded_rectangle((225,225,415,365),radius=12,fill=(255,255,255))
+              try:
+                  font=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",42)
+                  small=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",25)
+              except OSError:
+                  font=small=None
+              d.text((320,275),"EASY",fill=(20,20,20),anchor="mm",font=font)
+              d.text((320,325),"ALGERIA",fill=(20,20,20),anchor="mm",font=small)
+              im.save(out,"PNG")
           PY
       - name: Run EASY Qwen3-VL analyzer against real Ollama
         run: |
