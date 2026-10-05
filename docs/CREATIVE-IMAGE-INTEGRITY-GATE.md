@@ -33,12 +33,12 @@ The ComfyUI adapter can optionally wait for `/history/{prompt_id}` and extract t
 
 ## Next production gate
 
-Connect the OpenAI-compatible `createQwenVisionIntegrityAnalyzer` to `createVisualIntegrityVerifier`, using a local Qwen2.5-VL/Ollama-compatible endpoint where available, then run a real product image through the full gate. The adapter deliberately refuses to manufacture evidence: analyzer output must explicitly prove each required preservation flag. No production claim until that evidence exists.
+Connect `createQwenVisionIntegrityAnalyzer` to `createVisualIntegrityVerifier`, preferring native Ollama for Qwen3-VL when available, then run a real product image through the full gate. The adapter deliberately refuses to manufacture evidence: analyzer output must explicitly prove each required preservation flag. No production claim until that evidence exists.
 
 
 ## Runtime wiring
 
-Use `createQwenVisionIntegrityVerifier({ baseUrl, apiKey, model })` as the verifier passed to `runCreativeImageGate`. Keep the endpoint OpenAI-compatible and prefer a local/self-hosted vision runtime first. If the endpoint is unavailable, the gate must remain BLOCKED.
+Use `createQwenVisionIntegrityVerifier({ baseUrl, apiKey, model, protocol })` as the verifier passed to `runCreativeImageGate`. For native Ollama set `EASY_VISION_PROTOCOL=ollama`, `EASY_VISION_BASE_URL=http://<ollama-host>:11434`, and `EASY_VISION_MODEL=qwen3-vl:4b` (or another installed Qwen3-VL size). Ollama's Qwen3-VL models accept image input; the adapter converts reference/generated image URLs to base64 for `/api/chat`. For an OpenAI-compatible vision server set `EASY_VISION_PROTOCOL=openai`. If the endpoint or image evidence is unavailable, the gate must remain BLOCKED.
 
 
 ## CI evidence boundary
