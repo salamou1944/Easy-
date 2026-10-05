@@ -1,4 +1,5 @@
 import { createProductionPipeline } from './production-pipeline.mjs';
+import { createSalamou31ProductContentProvider } from './providers/salamou31-product-content.mjs';
 
 function assertSellerReviewRecord(record) {
   if (!record?.requestId || record.status !== 'validated' || !record.integrity?.passed) {
@@ -21,7 +22,12 @@ function assertSellerReviewRecord(record) {
  * only mode eligible for production publishing.
  */
 export function createSellerProductWorkflow({ creativeProvider = null, store }) {
-  const runProduction = createProductionPipeline({ creativeProvider, store });
+  const configuredProvider = creativeProvider || (
+    process.env.EASY_PRODUCT_CONTENT_API_URL && process.env.EASY_PRODUCT_CONTENT_API_KEY
+      ? createSalamou31ProductContentProvider()
+      : null
+  );
+  const runProduction = createProductionPipeline({ creativeProvider: configuredProvider, store });
 
   return async function run(input) {
     const record = await runProduction(input);
