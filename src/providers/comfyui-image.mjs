@@ -70,4 +70,4 @@ function extractComfyUIArtifact(outputs) {
     }
   }
   return null;
-}\n
+}
