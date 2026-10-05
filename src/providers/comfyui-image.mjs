@@ -56,4 +56,18 @@ export function createComfyUIImageProvider({
     }
   };
 }
-\nfunction extractComfyUIArtifact(outputs) {\n  for (const output of Object.values(outputs || {})) {\n    for (const image of output?.images || []) {\n      if (image?.filename) {\n        return {\n          type: 'image',\n          filename: image.filename,\n          subfolder: image.subfolder || '',\n          typeHint: image.type || 'output'\n        };\n      }\n    }\n  }\n  return null;\n}\n
+function extractComfyUIArtifact(outputs) {
+  for (const output of Object.values(outputs || {})) {
+    for (const image of output?.images || []) {
+      if (image?.filename) {
+        return {
+          type: 'image',
+          filename: image.filename,
+          subfolder: image.subfolder || '',
+          typeHint: image.type || 'output'
+        };
+      }
+    }
+  }
+  return null;
+}\n
