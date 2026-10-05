@@ -23,7 +23,9 @@ The adapter supports:
 2. Sending an outgoing reply to a Chatwoot conversation.
 3. Changing a conversation status.
 4. Rejecting malformed configuration and unsupported status values.
-5. Ignoring outgoing messages to prevent a basic reply loop.
+5. Verifying the Chatwoot webhook HMAC signature before accepting an inbound event.
+6. Emitting a stable eventId for downstream idempotency/deduplication.
+7. Ignoring outgoing messages to prevent a basic reply loop.
 
 Chatwoot exposes REST APIs and webhooks for conversations and messages and supports self-hosting. The core repository is MIT outside the enterprise directory; enterprise components have separate licensing. Do not copy enterprise code into EASY.
 
@@ -40,8 +42,9 @@ Automatic resolution is allowed only after the resolver has real order data, exp
 - EASY_CHATWOOT_BASE_URL
 - EASY_CHATWOOT_API_TOKEN
 - EASY_CHATWOOT_ACCOUNT_ID
+- EASY_CHATWOOT_WEBHOOK_SECRET
 
-Secrets must never be committed.
+Secrets must never be committed. The inbound handler must verify the raw request body against the webhook secret before JSON parsing or business processing. Downstream processing should deduplicate by `eventId` before invoking the resolver.
 
 ## Current gate
 
