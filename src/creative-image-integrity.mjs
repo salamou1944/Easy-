@@ -68,7 +68,8 @@ export function createVisualIntegrityVerifier({ analyze, requiredPreservations =
 export function createQwenVisionIntegrityAnalyzer({
   baseUrl = process.env.EASY_VISION_BASE_URL,
   apiKey = process.env.EASY_VISION_API_KEY,
-  model = process.env.EASY_VISION_MODEL || 'qwen2.5vl:7b',
+  model = process.env.EASY_VISION_MODEL || 'qwen3-vl:4b',
+  protocol = process.env.EASY_VISION_PROTOCOL || 'ollama',
   fetchImpl = globalThis.fetch
 } = {}) {
   if (!baseUrl) throw new Error('vision_base_url_required');
@@ -90,14 +91,28 @@ export function createQwenVisionIntegrityAnalyzer({
         'Product DNA:', JSON.stringify(dna || {})
       ].join('\\n');
 
-      const response = await fetchImpl(root + '/chat/completions', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          ...(apiKey ? { Authorization: 'Bearer ' + apiKey } : {})
-        },
-        body: JSON.stringify({
+      const toBase64 = async (value) => {
+        if (String(value).startsWith('data:')) return String(value).split(',')[1] || '';
+        const imageResponse = await fetchImpl(value, { headers: { Accept: 'image/*' } });
+        if (!imageResponse.ok) throw new Error('vision_image_fetch_failed:' + imageResponse.status);
+        const bytes = new Uint8Array(await imageResponse.arrayBuffer());
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        }
+        return btoa(binary);
+      };
+
+      const referenceBase64 = await toBase64(referenceImage);
+      const generatedBase64 = await toBase64(generatedImage);
+      let endpoint;
+      let body;
+      let headers = { Accept: 'application/json', 'Content-Type': 'application/json' };
+
+      if (protocol === 'openai') {
+        endpoint = root + '/chat/completions';
+        if (apiKey) headers.Authorization = 'Bearer ' + apiKey;
+        body = {
           model,
           temperature: 0,
           response_format: { type: 'json_object' },
@@ -106,16 +121,45 @@ export function createQwenVisionIntegrityAnalyzer({
             { type: 'image_url', image_url: { url: referenceImage } },
             { type: 'image_url', image_url: { url: generatedImage } }
           ] }]
-        })
+        };
+      } else if (protocol === 'ollama') {
+        endpoint = root + '/api/chat';
+        body = {
+          model,
+          stream: false,
+          format: 'json',
+          options: { temperature: 0 },
+          messages: [{
+            role: 'user',
+            content: prompt,
+            images: [referenceBase64, generatedBase64]
+          }]
+        };
+      } else {
+        throw new Error('vision_protocol_unsupported');
+      }
+
+      const response = await fetchImpl(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
       });
       let payload = null;
       try { payload = await response.json(); } catch {}
       if (!response.ok) throw new Error('vision_request_failed:' + response.status);
-      const raw = payload?.choices?.[0]?.message?.content;
+      const raw = protocol === 'ollama'
+        ? payload?.message?.content
+        : payload?.choices?.[0]?.message?.content;
       if (!raw) throw new Error('vision_missing_result');
       let parsed;
       try { parsed = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { throw new Error('vision_invalid_json'); }
-      return { ...parsed, evidenceVersion: 1, analyzer: 'qwen-vision', referenceArtifact: referenceImage, generatedArtifact: generatedImage };
+      return {
+        ...parsed,
+        evidenceVersion: 1,
+        analyzer: protocol === 'ollama' ? 'qwen3-vl-ollama' : 'qwen-vision',
+        referenceArtifact: referenceImage,
+        generatedArtifact: generatedImage
+      };
     }
   };
 }
