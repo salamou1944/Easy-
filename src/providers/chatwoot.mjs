@@ -1,5 +1,15 @@
+import crypto from 'node:crypto';
+
 function required(value,name){if(!value)throw new Error(name+'_required');}
 function normalizeBase(value){return String(value).replace(/\/$/,'');}
+
+export async function verifyChatwootWebhookSignature(rawBody,secret,signature){
+  if(typeof rawBody!=='string'||!secret||typeof signature!=='string'||!signature)return false;
+  const expected=crypto.createHmac('sha256',secret).update(rawBody,'utf8').digest('hex');
+  const provided=signature.trim().replace(/^sha256=/i,'');
+  if(!/^[a-f0-9]{64}$/i.test(provided))return false;
+  return crypto.timingSafeEqual(Buffer.from(expected,'hex'),Buffer.from(provided,'hex'));
+}
 
 export function createChatwootProvider({baseUrl=process.env.EASY_CHATWOOT_BASE_URL,apiToken=process.env.EASY_CHATWOOT_API_TOKEN,accountId=process.env.EASY_CHATWOOT_ACCOUNT_ID,fetchImpl=globalThis.fetch}={}){
   required(baseUrl,'chatwoot_base_url'); required(apiToken,'chatwoot_api_token'); required(accountId,'chatwoot_account_id');
@@ -31,5 +41,7 @@ export function normalizeChatwootMessageWebhook(payload){
   if(message.message_type!=='incoming')return null;
   const content=typeof message.content==='string'?message.content.trim():'';
   if(!content)return null;
-  return {source:'chatwoot',event:'message_created',conversationId:payload.conversation?.id??payload.conversation_id??null,messageId:message.id??null,contactId:payload.contact?.id??null,content,channel:payload.conversation?.inbox?.channel??null,receivedAt:message.created_at??payload.created_at??null};
+  const conversationId=payload.conversation?.id??payload.conversation_id??null;
+  const messageId=message.id??null;
+  return {source:'chatwoot',event:'message_created',conversationId,messageId,contactId:payload.contact?.id??null,content,channel:payload.conversation?.inbox?.channel??null,receivedAt:message.created_at??payload.created_at??null,eventId:messageId!==null?'message_created:'+String(messageId):null};
 }
