@@ -1,6 +1,6 @@
 # EASY Creative Image Integrity Gate
 
-Status: design contract ready for implementation.
+Status: provider job/artifact retrieval implemented; visual verification remains the production gate.
 
 The Creative Engine must treat image generation as a gated operation, not a successful HTTP request.
 
@@ -27,6 +27,10 @@ The provider adapter must return an image artifact plus generation metadata. It 
 
 The current Collection identifies ComfyUI for composable local image generation/editing, rembg for background removal, and Upscayl for local upscaling. These should be evaluated as adapters/components rather than copied into EASY.
 
+## ComfyUI execution boundary
+
+The ComfyUI adapter can optionally wait for `/history/{prompt_id}` and extract the generated image artifact plus a `/view` URL. The wait is opt-in so unit tests and non-blocking callers can retain submission semantics. Production use must enable completion waiting and enforce a finite timeout.
+
 ## Next production gate
 
-Implement a provider-neutral image adapter and a real visual verification adapter, then run a real product image through the full gate. No production claim until that evidence exists.
+Implement a real visual verification adapter, then run a real product image through the full gate. No production claim until that evidence exists.
