@@ -72,7 +72,14 @@ function buildVideoScriptOptions(dna, customScriptText = '') {
 }
 
 export function buildCreativeCampaign(input = {}) {
-  const dna = input.dna || {};
+  const suppliedDna = input.dna || {};
+  const dna = Object.keys(suppliedDna).length ? suppliedDna : {
+    productName: input.productName || input.product_name,
+    productBenefit: input.productBenefit || input.product_benefit,
+    product_details: input.productDetails || input.product_details,
+    brand: input.brand,
+    color: input.color
+  };
   if (!hasProductIdentity(dna)) throw new Error('creative_campaign_product_dna_required');
 
   const selectedQuality = input.imageQuality || 'balanced';
