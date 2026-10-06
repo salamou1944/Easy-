@@ -2,6 +2,7 @@ import { createFalCreativeProvider } from './providers/fal-creative.mjs';
 import { createQwenVisionIntegrityVerifier } from './creative-image-integrity.mjs';
 import { evaluateCreativeCampaignArtifacts } from './creative-campaign-artifact-gate.mjs';
 import { buildMetaReadiness } from './meta-readiness-gate.mjs';
+import { createLocalMediaExecutor } from './local-media-executor.mjs';
 import {
   CREATIVE_PROVIDER_MODELS,
   createProviderCircuitBreaker,
@@ -15,7 +16,8 @@ export function createRealCreativeArtifactPipeline({
   vision = {},
   imageModel,
   videoModel,
-  providerConfigured = Boolean(falClient)
+  providerConfigured = Boolean(falClient),
+  localMediaExecutor = createLocalMediaExecutor()
 } = {}) {
   if (!falClient) {
     return {
@@ -50,7 +52,7 @@ export function createRealCreativeArtifactPipeline({
       });
     },
 
-    async run({ sourceImageUrl, dna, campaign, angles = [], staticAds = [] } = {}) {
+    async run({ sourceImageUrl, dna, campaign, angles = [], staticAds = [], localMedia = {} } = {}) {
       if (!sourceImageUrl) throw new Error('source_image_required');
       if (!campaign?.imageQuality) throw new Error('image_quality_required');
       if (!campaign?.videoScriptText?.trim()) throw new Error('video_script_required');
@@ -61,6 +63,22 @@ export function createRealCreativeArtifactPipeline({
       }
 
       const integrity = [];
+      const localMediaResult = await localMediaExecutor.run({
+        sourceImageUrl,
+        needsBackgroundRemoval: Boolean(localMedia.backgroundRemoval),
+        needsUpscaling: Boolean(localMedia.upscaling)
+      });
+      if (!['NO_LOCAL_MEDIA_STEP', 'LOCAL_CAPABILITY_EXECUTED'].includes(localMediaResult.status)) {
+        return {
+          status: 'BLOCKED_LOCAL_MEDIA',
+          publishable: false,
+          preflight,
+          localMedia: localMediaResult,
+          claimBoundary: localMediaResult.claimBoundary
+        };
+      }
+      const effectiveSourceImageUrl = localMediaResult.outputUrl || sourceImageUrl;
+
       const runProvider = (label, fn, input) =>
         withProviderReliability(fn, {
           circuit,
@@ -68,7 +86,7 @@ export function createRealCreativeArtifactPipeline({
         });
 
       const sourceResult = await runProvider('enhanceSource', () => provider.enhanceSource({
-        imageUrl: sourceImageUrl,
+        imageUrl: effectiveSourceImageUrl,
         quality: campaign.imageQuality
       }), { quality: campaign.imageQuality });
       if (!sourceResult.ok) {
@@ -92,7 +110,7 @@ export function createRealCreativeArtifactPipeline({
         return result;
       };
 
-      if (!(await verify(source, sourceImageUrl)).publishable) {
+      if (!(await verify(source, effectiveSourceImageUrl)).publishable) {
         return { status: 'BLOCKED_INTEGRITY', publishable: false, preflight, integrity };
       }
 
@@ -125,6 +143,7 @@ export function createRealCreativeArtifactPipeline({
       }
 
       const artifacts = {
+        localMedia: localMediaResult,
         enhancedSourceImage: source,
         angles: angleArtifacts,
         staticAds,
@@ -158,6 +177,7 @@ export function createRealCreativeArtifactPipeline({
         publishable: campaignGate.publishable,
         provider: 'fal.ai',
         preflight,
+        localMedia: localMediaResult,
         source,
         angles: angleArtifacts,
         video,
