@@ -30,4 +30,6 @@ jobs:
       - name: Verify rembg module
         run: python -m rembg --help
       - name: Execute real rembg path
+        env:
+          RUN_REAL_LOCAL_MEDIA: '1'
         run: node --test test/local-media-executor-real.test.mjs
