@@ -1,0 +1,31 @@
+name: EASY Creative Campaign Factory Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/creative-campaign-factory.mjs"
+      - "src/creative-campaign-artifact-gate.mjs"
+      - "src/providers/fal-creative.mjs"
+      - "test/creative-campaign-*.test.mjs"
+      - "test/providers-fal-creative.test.mjs"
+      - ".github/workflows/easy-creative-campaign-factory.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Syntax check
+        run: npm run check
+      - name: Run Creative campaign tests
+        run: node --test test/creative-campaign-factory.test.mjs test/creative-campaign-customer-controls.test.mjs test/creative-campaign-artifact-gate.test.mjs test/providers-fal-creative.test.mjs
