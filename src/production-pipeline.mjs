@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { buildProductDna, checkProductIntegrity } from './easy-engine.mjs';
 import { generateCreativeWithFallback } from './creative-orchestrator.mjs';
+import { buildCreativeCampaign } from './creative-campaign-factory.mjs';
 
 function validateProviderImageUrl(input, creativeProvider) {
   if (!creativeProvider || !input?.image_url) return;
@@ -19,6 +20,7 @@ export function createProductionPipeline({ creativeProvider = null, store }) {
     const requestId = randomUUID();
     validateProviderImageUrl(input, creativeProvider);
     const dna = buildProductDna(input);
+    const campaign = buildCreativeCampaign({ ...input, dna });
     const generated = await generateCreativeWithFallback(input, { provider: creativeProvider });
     if (creativeProvider && generated.mode !== 'provider') {
       throw new Error(`creative_provider_blocked:${generated.fallbackReason || 'provider_error'}`);
@@ -30,15 +32,16 @@ export function createProductionPipeline({ creativeProvider = null, store }) {
     if (!integrity.passed) throw new Error(`product_integrity_failed:${integrity.missingFacts.join('|')}`);
 
     const record = {
-      version: 2,
+      version: 3,
       requestId,
       status: 'validated',
       mode: generated.mode,
       dna,
       creative: generated,
+      campaign,
       integrity,
       provider: generated.provider || 'deterministic-safe-fixture',
-      publishable: generated.mode === 'provider'
+      publishable: generated.mode === 'provider' && campaign.metaReadiness.publishable === true
     };
     await store.save(record);
     return record;
@@ -48,7 +51,8 @@ export function createProductionPipeline({ creativeProvider = null, store }) {
 export function assertProductionRecord(record) {
   if (!record?.requestId || record.status !== 'validated' || !record.integrity?.passed) throw new Error('invalid_production_record');
   if (!record.mode || !['provider', 'deterministic-fallback'].includes(record.mode)) throw new Error('invalid_production_mode');
-  if (record.publishable !== (record.mode === 'provider')) throw new Error('invalid_publishability_contract');
+  if (record.publishable !== (record.mode === 'provider' && record.campaign?.metaReadiness?.publishable === true)) throw new Error('invalid_publishability_contract');
   if (record.mode === 'deterministic-fallback') throw new Error('non_provider_creative_not_publishable');
+  if (record.campaign?.metaReadiness?.publishable !== true) throw new Error('creative_campaign_not_meta_ready');
   return true;
 }
