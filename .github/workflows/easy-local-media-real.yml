@@ -1,0 +1,33 @@
+name: EASY Local Media Real Execution Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/local-media-executor.mjs"
+      - "src/local-media-capabilities.mjs"
+      - "test/local-media-executor-real.test.mjs"
+      - "requirements-local-media.txt"
+      - ".github/workflows/easy-local-media-real.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rembg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install local media capability
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-local-media.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify rembg module
+        run: python -m rembg --help
+      - name: Execute real rembg path
+        run: node --test test/local-media-executor-real.test.mjs
