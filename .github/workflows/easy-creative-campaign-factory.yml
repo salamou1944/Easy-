@@ -14,7 +14,7 @@ on:
       - "test/providers-fal-creative.test.mjs"
       - "test/meta-readiness-gate.test.mjs"
       - "test/creative-provider-reliability.test.mjs"
-      - "test/real-creative-artifact-pipeline.test.mjs test/local-media-capabilities.test.mjs test/local-media-executor.test.mjs"
+      - "test/real-creative-artifact-pipeline.test.mjs"
       - "src/local-media-capabilities.mjs"
       - "src/local-media-executor.mjs"
       - "test/local-media-capabilities.test.mjs"
@@ -38,4 +38,4 @@ jobs:
       - name: Syntax check
         run: npm run check
       - name: Run Creative campaign tests
-        run: node --test test/creative-campaign-factory.test.mjs test/creative-campaign-customer-controls.test.mjs test/creative-campaign-artifact-gate.test.mjs test/providers-fal-creative.test.mjs test/meta-readiness-gate.test.mjs test/creative-provider-reliability.test.mjs test/real-creative-artifact-pipeline.test.mjs
+        run: node --test test/creative-campaign-factory.test.mjs test/creative-campaign-customer-controls.test.mjs test/creative-campaign-artifact-gate.test.mjs test/providers-fal-creative.test.mjs test/meta-readiness-gate.test.mjs test/creative-provider-reliability.test.mjs test/real-creative-artifact-pipeline.test.mjs test/local-media-capabilities.test.mjs test/local-media-executor.test.mjs
