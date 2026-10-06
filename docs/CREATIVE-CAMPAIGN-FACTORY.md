@@ -1,19 +1,29 @@
 # EASY Creative Campaign Factory
 
-Status: canonical product contract implemented.
+Status: canonical product contract implemented and extended with customer controls.
 
 ## Product definition
 
-EASY Creative is **not** an image generator.
+EASY Creative is not an image generator.
 
-The canonical input is **one product image**. The canonical output is a complete creative campaign package intended to be reviewed and prepared for Meta advertising:
+The canonical input is **one product image**. The customer can choose the desired source-image quality treatment and the video script direction. EASY then produces a complete campaign package intended for Meta advertising:
 
-1. Multiple product angles from the same source product.
-2. Multiple static ad formats.
-3. Short promotional video.
-4. Multiple primary-text, headline and CTA variants.
-5. Meta-format/readiness checks.
-6. Product Integrity validation before any generated asset is considered final.
+1. Source-image quality enhancement.
+2. Multiple product angles from the same source product.
+3. Multiple static ad formats.
+4. Short promotional video.
+5. Customer-selected video script.
+6. Multiple primary-text, headline and CTA variants.
+7. Meta-format/readiness checks.
+8. Product Integrity validation before any generated asset is considered final.
+
+## Customer controls
+
+The customer chooses:
+- Image quality treatment: balanced, high detail, or clean commercial.
+- Video script: benefit-first, product-first, or problem-to-solution.
+
+The selected video script is part of the campaign record and must be the script actually rendered by the provider. EASY must never silently substitute a different script.
 
 ## Non-negotiable integrity rule
 
@@ -27,15 +37,10 @@ No asset is publishable merely because an HTTP request succeeded. Every provider
 
 When a provider is unavailable, EASY may build the deterministic campaign manifest and continue repository-native engineering, but it must never label the campaign as Meta-ready/publishable.
 
-## Canonical implementation
-
-- `src/creative-campaign-factory.mjs` defines the campaign manifest, required angles, static formats, video contract, copy variants and fail-closed publishability gate.
-- `test/creative-campaign-factory.test.mjs` verifies the one-image expansion and blocked-before-provider behavior.
-
 ## Commercial meaning
 
 The sellable unit is a **Creative Campaign Pack**, not an individual generated image:
 
-`1 product image -> campaign pack -> customer review -> validated assets -> Meta-ready delivery`
+1 product image -> quality selection -> campaign/script selection -> generation -> integrity + Meta checks -> Meta-ready delivery
 
 This is the foundation for pay-per-pack first, followed by repeat purchase and subscription once real customer demand is proven.
