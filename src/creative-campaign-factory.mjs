@@ -33,15 +33,16 @@ function clean(value, max = 500) {
 
 function hasProductIdentity(dna) {
   return Boolean(dna && typeof dna === 'object' && (
-    clean(dna.productName || dna.product_name) ||
+    clean(dna.productName || dna.product_name || dna.title) ||
     clean(dna.brand) ||
-    clean(dna.color)
+    clean(dna.color) ||
+    (Array.isArray(dna.authoritativeFacts) && dna.authoritativeFacts.length > 0)
   ));
 }
 
 function buildVideoScriptOptions(dna, customScriptText = '') {
-  const product = clean(dna.productName || dna.product_name || 'هذا المنتج', 120);
-  const benefit = clean(dna.productBenefit || dna.benefit || dna.product_details, 180);
+  const product = clean(dna.productName || dna.product_name || dna.title || 'هذا المنتج', 120);
+  const benefit = clean(dna.productBenefit || dna.benefit || dna.product_details || dna.authoritativeFacts?.[0], 180);
   const custom = clean(customScriptText, 1200);
   return [
     {
