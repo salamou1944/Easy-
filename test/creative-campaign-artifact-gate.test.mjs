@@ -53,3 +53,9 @@ test('artifact gate passes only with all artifacts, integrity evidence, and Meta
   assert.deepEqual(result.blockedReasons, []);
   assert.doesNotThrow(() => assertCreativeCampaignArtifactsPublishable(result));
 });
+
+
+test('real artifact pipeline contract rejects missing provider client before any fabricated output', async () => {
+  const { createRealCreativeArtifactPipeline } = await import('../src/real-creative-artifact-pipeline.mjs');
+  assert.throws(() => createRealCreativeArtifactPipeline({}), /fal_client_required/);
+});
