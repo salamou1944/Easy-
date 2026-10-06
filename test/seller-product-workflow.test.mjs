@@ -32,7 +32,7 @@ test('seller workflow produces a review-ready fallback without making it publish
   assert.equal(store.records[0].publishable, false);
 });
 
-test('seller workflow accepts provider output only when Product Integrity passes', async () => {
+test('seller workflow keeps provider output blocked until full Creative campaign readiness', async () => {
   const store = memoryStore();
   const workflow = createSellerProductWorkflow({
     store,
@@ -50,7 +50,7 @@ test('seller workflow accepts provider output only when Product Integrity passes
   assert.equal(result.creative.mode, 'provider');
   assert.equal(result.provider, 'test-provider');
   assert.equal(result.integrity.passed, true);
-  assert.equal(result.publishable, true);
+  assert.equal(result.publishable, false);
 });
 
 test('seller workflow rejects empty seller input before persistence', async () => {
