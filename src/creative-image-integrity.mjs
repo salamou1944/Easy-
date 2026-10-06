@@ -94,7 +94,7 @@ export function createQwenVisionIntegrityAnalyzer({
       const toBase64 = async (value) => {
         if (String(value).startsWith('data:')) return String(value).split(',')[1] || '';
         const imageResponse = await fetchImpl(value, { headers: { Accept: 'image/*' } });
-        if (!imageResponse.ok) throw new Error('vision_image_fetch_failed:' + imageResponse.status);
+        if (!imageResponse.ok) throw new Error('vision_request_failed:' + imageResponse.status);
         const bytes = new Uint8Array(await imageResponse.arrayBuffer());
         let binary = '';
         for (let i = 0; i < bytes.length; i += 0x8000) {
