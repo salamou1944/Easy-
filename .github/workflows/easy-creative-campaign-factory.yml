@@ -8,8 +8,10 @@ on:
       - "src/creative-campaign-artifact-gate.mjs"
       - "src/providers/fal-creative.mjs"
       - "test/creative-campaign-*.test.mjs"
-      - "test/providers-fal-creative.test.mjs"
+      - "test/providers-fal-creative.test.mjs test/meta-readiness-gate.test.mjs"
       - ".github/workflows/easy-creative-campaign-factory.yml"
+      - "src/meta-readiness-gate.mjs"
+      - "test/meta-readiness-gate.test.mjs"
 
 permissions:
   contents: read
