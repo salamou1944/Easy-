@@ -17,7 +17,7 @@ export function createFalCreativeProvider({
   }
 
   const run = async (model, input) => {
-    const result = await falClient.subscribe(model, { input });
+    const result = await falClient.subscribe(model, { input, logs: true });
     return result?.data ?? result;
   };
 
@@ -69,7 +69,11 @@ export function createFalCreativeProvider({
       const data = await run(videoModel, {
         image_url: imageUrl,
         prompt: motionPrompt,
-        duration: 5
+        duration: '5',
+        resolution: '1080p',
+        enable_prompt_expansion: false,
+        multi_shots: false,
+        enable_safety_checker: true
       });
       const url = videoUrlFrom(data);
       if (!url) throw new Error('fal_video_artifact_missing');
