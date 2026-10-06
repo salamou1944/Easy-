@@ -39,30 +39,34 @@ function hasProductIdentity(dna) {
   ));
 }
 
-function buildVideoScriptOptions(dna) {
+function buildVideoScriptOptions(dna, customScriptText = '') {
   const product = clean(dna.productName || dna.product_name || 'هذا المنتج', 120);
   const benefit = clean(dna.productBenefit || dna.benefit || dna.product_details, 180);
+  const custom = clean(customScriptText, 1200);
   return [
     {
       id: 'benefit_first',
       title: 'Benefit first',
       hook: benefit || ('اكتشف ' + product),
       structure: ['hook', 'product_reveal', 'product_benefit', 'cta'],
-      requiresProductFactValidation: true
+      requiresProductFactValidation: true,
+      scriptText: custom || null
     },
     {
       id: 'product_first',
       title: 'Product first',
       hook: 'تعرّف على ' + product,
       structure: ['hook', 'product_reveal', 'product_benefit', 'cta'],
-      requiresProductFactValidation: true
+      requiresProductFactValidation: true,
+      scriptText: custom || null
     },
     {
       id: 'problem_solution',
       title: 'Problem → solution',
       hook: 'حل عملي يبدأ من المنتج',
       structure: ['hook', 'product_reveal', 'product_benefit', 'cta'],
-      requiresProductFactValidation: true
+      requiresProductFactValidation: true,
+      scriptText: custom || null
     }
   ];
 }
@@ -76,7 +80,8 @@ export function buildCreativeCampaign(input = {}) {
     throw new Error('creative_campaign_invalid_image_quality');
   }
 
-  const scriptOptions = buildVideoScriptOptions(dna);
+  const customVideoScriptText = clean(input.videoScriptText || input.video_script_text, 1200);
+  const scriptOptions = buildVideoScriptOptions(dna, customVideoScriptText);
   const selectedVideoScript = input.videoScriptId || scriptOptions[0].id;
   if (!scriptOptions.some(script => script.id === selectedVideoScript)) {
     throw new Error('creative_campaign_invalid_video_script');
@@ -106,6 +111,7 @@ export function buildCreativeCampaign(input = {}) {
     scriptOptions,
     selectedScriptId: selectedVideoScript,
     selectedScript: script,
+    selectedScriptText: customVideoScriptText || script.scriptText || script.hook,
     requiresProviderArtifact: true,
     integrityRequired: true
   }];
@@ -119,7 +125,11 @@ export function buildCreativeCampaign(input = {}) {
     },
     customerControls: {
       imageQuality: { options: IMAGE_QUALITY_OPTIONS, selected: selectedQuality },
-      videoScript: { options: scriptOptions, selected: selectedVideoScript }
+      videoScript: {
+        options: scriptOptions,
+        selected: selectedVideoScript,
+        selectedText: customVideoScriptText || script.scriptText || script.hook
+      }
     },
     deliverables: {
       enhancedSourceImage: {
