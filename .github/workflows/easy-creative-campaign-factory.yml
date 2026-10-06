@@ -14,7 +14,11 @@ on:
       - "test/providers-fal-creative.test.mjs"
       - "test/meta-readiness-gate.test.mjs"
       - "test/creative-provider-reliability.test.mjs"
-      - "test/real-creative-artifact-pipeline.test.mjs"
+      - "test/real-creative-artifact-pipeline.test.mjs test/local-media-capabilities.test.mjs test/local-media-executor.test.mjs"
+      - "src/local-media-capabilities.mjs"
+      - "src/local-media-executor.mjs"
+      - "test/local-media-capabilities.test.mjs"
+      - "test/local-media-executor.test.mjs"
       - ".github/workflows/easy-creative-campaign-factory.yml"
 
 permissions:
