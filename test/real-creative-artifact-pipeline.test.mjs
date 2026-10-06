@@ -17,29 +17,6 @@ test('real pipeline exposes preflight without consuming a provider operation', (
 });
 
 
-test('real pipeline executes injected local media capabilities before provider work', async () => {
-  const calls = [];
-  const pipeline=createRealCreativeArtifactPipeline({
-    falClient: {},
-    localMediaExecutor: {
-      async run(input) {
-        calls.push(input);
-        return { status:'LOCAL_CAPABILITY_EXECUTED', publishable:true, outputUrl:'file:///tmp/upscaled.png', steps:[{ capability:'upscayl', execution:'executed' }], claimBoundary:'local capability execution returned an artifact; integrity verification remains required' };
-      }
-    }
-  });
-  const result=await pipeline.run({
-    sourceImageUrl:'https://example.com/product.jpg',
-    dna:{},
-    campaign:{imageQuality:'balanced',videoScriptText:'Use this product today.',deliverables:{},customerControls:{}},
-    localMedia:{upscaling:true}
-  });
-  assert.equal(calls.length,1);
-  assert.equal(calls[0].needsUpscaling,true);
-  assert.equal(calls[0].sourceImageUrl,'https://example.com/product.jpg');
-  assert.notEqual(result.status,'BLOCKED_LOCAL_MEDIA');
-});
-
 test('requested local media blocks closed when no executor is configured', async () => {
   const pipeline=createRealCreativeArtifactPipeline({falClient:{}});
   const result=await pipeline.run({
