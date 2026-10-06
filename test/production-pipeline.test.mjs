@@ -9,6 +9,7 @@ test('production pipeline supports deterministic fallback without a provider', a
   assert.equal(result.status, 'validated');
   assert.equal(result.mode, 'deterministic-fallback');
   assert.equal(result.integrity.passed, true);
+  assert.ok(result.campaign?.deliverables?.videos?.length);
   assert.equal(saved.requestId, result.requestId);
   assert.equal(result.publishable, false);
   assert.throws(() => assertProductionRecord(result), /non_provider_creative_not_publishable/);
@@ -18,7 +19,7 @@ test('production pipeline requires durable store', () => {
   assert.throws(() => createProductionPipeline({}), /durable_store_required/);
 });
 
-test('production pipeline accepts provider output only after integrity validation', async () => {
+test('provider output is validated but remains blocked until the full campaign is artifact-complete and Meta-ready', async () => {
   let saved = null;
   const pipeline = createProductionPipeline({
     creativeProvider: { async generate() { return { text: 'Product A. Fast delivery.', provider: 'test-provider' }; } },
@@ -29,8 +30,10 @@ test('production pipeline accepts provider output only after integrity validatio
   assert.equal(result.mode, 'provider');
   assert.equal(result.provider, 'test-provider');
   assert.equal(result.integrity.passed, true);
+  assert.equal(result.campaign.metaReadiness.publishable, false);
+  assert.equal(result.publishable, false);
   assert.equal(saved.requestId, result.requestId);
-  assertProductionRecord(result);
+  assert.throws(() => assertProductionRecord(result), /creative_campaign_not_meta_ready/);
 });
 
 test('production pipeline fails closed when configured provider throws', async () => {
@@ -58,7 +61,6 @@ test('production pipeline fails closed when provider output violates Product Int
   );
   assert.equal(saved, false);
 });
-
 
 test('production pipeline rejects non-http image URLs before provider execution', async () => {
   let called = false;
