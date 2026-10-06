@@ -44,3 +44,30 @@ The sellable unit is a **Creative Campaign Pack**, not an individual generated i
 1 product image -> quality selection -> campaign/script selection -> generation -> integrity + Meta checks -> Meta-ready delivery
 
 This is the foundation for pay-per-pack first, followed by repeat purchase and subscription once real customer demand is proven.
+
+
+## Provider implementation
+
+An optional fal.ai adapter is now present at `src/providers/fal-creative.mjs`. It is credential-free by default and performs no request unless a configured fal client is injected. The adapter targets current commercial-use image/video endpoints and returns only provider-reported artifacts; it never self-certifies integrity.
+
+Current target models:
+- `fal-ai/qwen-image-edit-2511` for source enhancement and product-angle generation.
+- `fal-ai/wan/v2.6/image-to-video` for image-to-video.
+
+These are provider capabilities, not proof that EASY has production access. A real production run still requires a configured provider credential, reachable source image, actual artifact output, visual integrity evidence, and Meta readiness evidence.
+
+## Artifact gate
+
+`src/creative-campaign-artifact-gate.mjs` is the final fail-closed boundary. It blocks publishability when any required artifact, integrity result, customer control, or Meta readiness proof is missing.
+
+## Current state
+
+The repository now contains:
+- customer-facing quality selection;
+- customer-facing exact video-script text selection;
+- persistence of the exact selected script in the campaign manifest;
+- provider-neutral artifact gating;
+- an optional real fal.ai image/video adapter;
+- regression tests and a dedicated CI workflow.
+
+The remaining production proof is intentionally external: run a real customer product image through a configured provider and the visual-integrity/Meta validators. No fixture or contract test is treated as that proof.
