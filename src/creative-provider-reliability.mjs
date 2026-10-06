@@ -106,7 +106,7 @@ export async function withProviderReliability(fn, {
 export function providerPreflight({ providerConfigured = false, sourceImageUrl = '', model = '' } = {}) {
   const checks = {
     configured: providerConfigured === true,
-    sourceReachableInput: /^https?:\\/\\//.test(String(sourceImageUrl)),
+    sourceReachableInput: /^https?:\/\//.test(String(sourceImageUrl)),
     modelKnown: Object.values(CREATIVE_PROVIDER_MODELS).some(x => x.image === model || x.video === model)
   };
   return {
