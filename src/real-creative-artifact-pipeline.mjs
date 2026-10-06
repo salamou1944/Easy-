@@ -39,7 +39,6 @@ export function createRealCreativeArtifactPipeline({
     };
   }
 
-  const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
   const verifier = createQwenVisionIntegrityVerifier(vision);
   const circuit = createProviderCircuitBreaker();
 
@@ -62,6 +61,7 @@ export function createRealCreativeArtifactPipeline({
         return { status: 'BLOCKED_EXTERNAL_DEPENDENCY', publishable: false, preflight };
       }
 
+      const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
       const integrity = [];
       const localMediaResult = await localMediaExecutor.run({
         sourceImageUrl,
@@ -77,7 +77,16 @@ export function createRealCreativeArtifactPipeline({
           claimBoundary: localMediaResult.claimBoundary
         };
       }
-      const effectiveSourceImageUrl = localMediaResult.outputUrl || sourceImageUrl;
+      if (localMediaResult.status === 'LOCAL_CAPABILITY_EXECUTED' && !localMediaResult.providerInputUrl && !localMediaResult.outputUrl) {
+        return {
+          status: 'BLOCKED_LOCAL_MEDIA_HANDOFF',
+          publishable: false,
+          preflight,
+          localMedia: localMediaResult,
+          claimBoundary: 'local artifact exists but no provider-accessible handoff was proven'
+        };
+      }
+      const effectiveSourceImageUrl = localMediaResult.providerInputUrl || localMediaResult.outputUrl || sourceImageUrl;
 
       const runProvider = (label, fn, input) =>
         withProviderReliability(fn, {

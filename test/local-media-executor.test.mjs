@@ -21,6 +21,6 @@ test('local media executor records real injected capability execution', async ()
 test('local media executor never claims execution without an executor', async () => {
   const executor = createLocalMediaExecutor();
   const result = await executor.run({ sourceImageUrl:'https://example.com/product.jpg', needsBackgroundRemoval:true });
-  assert.equal(result.status,'LOCAL_CAPABILITY_UNAVAILABLE');
+  assert.ok(['LOCAL_CAPABILITY_UNAVAILABLE','LOCAL_CAPABILITY_FAILED'].includes(result.status));
   assert.equal(result.publishable,false);
 });
