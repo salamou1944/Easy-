@@ -8,7 +8,8 @@ function assertSellerReviewRecord(record) {
   if (!['provider', 'deterministic-fallback'].includes(record.mode)) {
     throw new Error('invalid_seller_review_mode');
   }
-  if (record.publishable !== (record.mode === 'provider')) {
+  const expectedPublishable = record.mode === 'provider' && record.campaign?.metaReadiness?.publishable === true;
+  if (record.publishable !== expectedPublishable) {
     throw new Error('invalid_publishability_contract');
   }
   return true;
