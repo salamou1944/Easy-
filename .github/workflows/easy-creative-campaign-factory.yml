@@ -6,9 +6,15 @@ on:
     paths:
       - "src/creative-campaign-factory.mjs"
       - "src/creative-campaign-artifact-gate.mjs"
+      - "src/creative-provider-reliability.mjs"
+      - "src/real-creative-artifact-pipeline.mjs"
+      - "src/meta-readiness-gate.mjs"
       - "src/providers/fal-creative.mjs"
       - "test/creative-campaign-*.test.mjs"
       - "test/providers-fal-creative.test.mjs"
+      - "test/meta-readiness-gate.test.mjs"
+      - "test/creative-provider-reliability.test.mjs"
+      - "test/real-creative-artifact-pipeline.test.mjs"
       - ".github/workflows/easy-creative-campaign-factory.yml"
 
 permissions:
@@ -28,4 +34,4 @@ jobs:
       - name: Syntax check
         run: npm run check
       - name: Run Creative campaign tests
-        run: node --test test/creative-campaign-factory.test.mjs test/creative-campaign-customer-controls.test.mjs test/creative-campaign-artifact-gate.test.mjs test/providers-fal-creative.test.mjs
+        run: node --test test/creative-campaign-factory.test.mjs test/creative-campaign-customer-controls.test.mjs test/creative-campaign-artifact-gate.test.mjs test/providers-fal-creative.test.mjs test/meta-readiness-gate.test.mjs test/creative-provider-reliability.test.mjs test/real-creative-artifact-pipeline.test.mjs
