@@ -39,7 +39,6 @@ export function createRealCreativeArtifactPipeline({
     };
   }
 
-  const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
   const verifier = createQwenVisionIntegrityVerifier(vision);
   const circuit = createProviderCircuitBreaker();
 
@@ -62,6 +61,7 @@ export function createRealCreativeArtifactPipeline({
         return { status: 'BLOCKED_EXTERNAL_DEPENDENCY', publishable: false, preflight };
       }
 
+      const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
       const integrity = [];
       const localMediaResult = await localMediaExecutor.run({
         sourceImageUrl,
