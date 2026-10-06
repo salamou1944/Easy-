@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createLocalMediaExecutor } from '../src/local-media-executor.mjs';
 
-test('real rembg runner is executable when python rembg is installed', async () => {
+test('real rembg runner is executable when python rembg is installed', { skip: !process.env.RUN_REAL_LOCAL_MEDIA }, async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'easy-rembg-test-'));
   const input = path.join(dir, 'input.png');
   const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
