@@ -39,7 +39,6 @@ export function createRealCreativeArtifactPipeline({
     };
   }
 
-  const verifier = createQwenVisionIntegrityVerifier(vision);
   const circuit = createProviderCircuitBreaker();
 
   return {
@@ -61,7 +60,6 @@ export function createRealCreativeArtifactPipeline({
         return { status: 'BLOCKED_EXTERNAL_DEPENDENCY', publishable: false, preflight };
       }
 
-      const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
       const integrity = [];
       const localMediaResult = await localMediaExecutor.run({
         sourceImageUrl,
@@ -87,6 +85,11 @@ export function createRealCreativeArtifactPipeline({
         };
       }
       const effectiveSourceImageUrl = localMediaResult.providerInputUrl || localMediaResult.outputUrl || sourceImageUrl;
+
+      // Instantiate provider adapters only after local-media gates pass, before any paid call.
+      const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
+      // Vision configuration is likewise required only once image verification will be needed.
+      const verifier = createQwenVisionIntegrityVerifier(vision);
 
       const runProvider = (label, fn, input) =>
         withProviderReliability(fn, {
