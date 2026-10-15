@@ -39,7 +39,6 @@ export function createRealCreativeArtifactPipeline({
     };
   }
 
-  const verifier = createQwenVisionIntegrityVerifier(vision);
   const circuit = createProviderCircuitBreaker();
 
   return {
@@ -87,6 +86,11 @@ export function createRealCreativeArtifactPipeline({
         };
       }
       const effectiveSourceImageUrl = localMediaResult.providerInputUrl || localMediaResult.outputUrl || sourceImageUrl;
+
+      // Resolve vision configuration only after local-media preflight passes. This keeps
+      // deterministic BLOCKED_LOCAL_MEDIA paths testable without a configured vision host,
+      // while still failing before any paid provider operation when verification is required.
+      const verifier = createQwenVisionIntegrityVerifier(vision);
 
       const runProvider = (label, fn, input) =>
         withProviderReliability(fn, {
