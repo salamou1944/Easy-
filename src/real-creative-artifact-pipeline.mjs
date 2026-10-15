@@ -60,7 +60,6 @@ export function createRealCreativeArtifactPipeline({
         return { status: 'BLOCKED_EXTERNAL_DEPENDENCY', publishable: false, preflight };
       }
 
-      const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
       const integrity = [];
       const localMediaResult = await localMediaExecutor.run({
         sourceImageUrl,
@@ -87,9 +86,9 @@ export function createRealCreativeArtifactPipeline({
       }
       const effectiveSourceImageUrl = localMediaResult.providerInputUrl || localMediaResult.outputUrl || sourceImageUrl;
 
-      // Resolve vision configuration only after local-media preflight passes. This keeps
-      // deterministic BLOCKED_LOCAL_MEDIA paths testable without a configured vision host,
-      // while still failing before any paid provider operation when verification is required.
+      // Instantiate provider adapters only after local-media gates pass, before any paid call.
+      const provider = createFalCreativeProvider({ falClient, imageModel, videoModel });
+      // Vision configuration is likewise required only once image verification will be needed.
       const verifier = createQwenVisionIntegrityVerifier(vision);
 
       const runProvider = (label, fn, input) =>
