@@ -79,7 +79,7 @@ jobs:
           roles=(Architect Builder UI-UX Backend-API Database Security Integration AI-Agent Test-QA Browser-E2E Debug-Repair Deployment-Ops Product-MVP Research-Capability)
           expected=()
           for role in "${roles[@]}"; do
-            slug="$(printf '%s' "$role" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g')"
+            slug="$(node .army-tools/scripts/army-14-manifest.mjs role-slug --role "$role")"
             expected+=("army/${RUN_ID}/${slug}")
           done
           mapfile -t branches < <(git ls-remote --heads origin "refs/heads/army/${RUN_ID}/"'*' | awk '{sub("refs/heads/", "", $2); print $2}' | sort)
@@ -90,10 +90,12 @@ jobs:
           fi
           : > /tmp/army-14-records.json
           printf '[]\n' > /tmp/army-14-records.json
-          for branch in "${branches[@]}"; do
+          for role in "${roles[@]}"; do
+            slug="$(node .army-tools/scripts/army-14-manifest.mjs role-slug --role "$role")"
+            branch="army/${RUN_ID}/${slug}"
             git fetch origin "$branch"
-            slug="${branch##*/}"
-            manifest="$(git show "origin/$branch:.army-14/manifests/${RUN_ID}/${slug}.json")"
+            manifest_path="$(node .army-tools/scripts/army-14-manifest.mjs manifest-path --run-id "$RUN_ID" --role "$role")"
+            manifest="$(git show "origin/$branch:${manifest_path}")"
             tip="$(git rev-parse "origin/$branch")"
             task_commit="$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).commit)' "$manifest")"
             test "$(git rev-parse "${tip}^1")" = "$task_commit"
