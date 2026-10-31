@@ -10,6 +10,8 @@ permissions:
   models: read
   copilot-requests: write
 
+# Keep top-level scheduled/manual runs serialized per repository; worker-job
+# concurrency is independently scoped by repository, run ID, and role below.
 concurrency:
   group: army-14-easy-background
   cancel-in-progress: false
