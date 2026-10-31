@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const workflow = await readFile(new URL('../.github/workflows/army-14-practical-easy-gate.yml', import.meta.url), 'utf8');
+
+test('Army-14 caller discovers exactly the run-scoped branches for all 14 roles', () => {
+  assert.match(workflow, /needs\.practical\.result == 'success'/);
+  assert.match(workflow, /roles=\(Architect Builder UI-UX Backend-API Database Security Integration AI-Agent Test-QA Browser-E2E Debug-Repair Deployment-Ops Product-MVP Research-Capability\)/);
+  assert.match(workflow, /\[\[ "\$\{#branches\[@\]\}" -ne 14 \]\]/);
+  assert.match(workflow, /army-14-manifest\.mjs role-slug --role "\$role"/);
+  assert.match(workflow, /army-14-manifest\.mjs manifest-path --run-id "\$RUN_ID" --role "\$role"/);
+  assert.doesNotMatch(workflow, /tr '\[:upper:\]'/);
+  assert.match(workflow, /army-14-integration\.mjs validate --run-id/);
+  assert.match(workflow, /--pins \/tmp\/army-14-pins\.json/);
+  assert.match(workflow, /git merge-base --is-ancestor/);
+  assert.match(workflow, /git merge --no-ff --no-edit "\$expected_tip"/);
+  assert.match(workflow, /test "\$current_tip" = "\$expected_tip"/);
+  assert.match(workflow, /elite-code-reusable-supervisor\.yml@3706023f72c2c6eb45f6315772ae168000ed415d/);
+  assert.match(workflow, /ref: 3706023f72c2c6eb45f6315772ae168000ed415d/);
+});
+
+test('Army-14 caller never pushes integration output to main', () => {
+  assert.doesNotMatch(workflow, /git push[^\n]*\bmain\b/i);
+  assert.match(workflow, /no branch or main ref was pushed/i);
+});
+
