@@ -8,7 +8,7 @@ test('Army-14 caller discovers exactly the run-scoped branches for all 14 roles'
   assert.match(workflow, /needs\.practical\.result == 'success'/);
   assert.match(workflow, /roles=\(Architect Builder UI-UX Backend-API Database Security Integration AI-Agent Test-QA Browser-E2E Debug-Repair Deployment-Ops Product-MVP Research-Capability\)/);
   assert.match(workflow, /\[\[ "\$\{#branches\[@\]\}" -ne 14 \]\]/);
-  assert.match(workflow, /\.army-14-manifest\.json/);
+  assert.match(workflow, /\.army-14\/manifests\/\$\{RUN_ID\}\/\$\{slug\}\.json/);
   assert.match(workflow, /validate-set --run-id/);
   assert.match(workflow, /git merge-base --is-ancestor/);
 });
